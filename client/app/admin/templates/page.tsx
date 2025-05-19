@@ -265,7 +265,7 @@ export default function TemplateManagement() {
       </Card>
 
       {/* Add Template Dialog */}
-      <Dialog open={openAddTemplate} onOpenChange={setOpenAddTemplate}>
+      <Dialog open={false} onOpenChange={setOpenAddTemplate}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Add New Template</DialogTitle>
@@ -396,7 +396,7 @@ export default function TemplateManagement() {
       </Dialog>
 
       {/* Edit Template Dialog */}
-      <Dialog open={openEditTemplate} onOpenChange={setOpenEditTemplate}>
+      <Dialog open={false} onOpenChange={setOpenEditTemplate}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Edit Template</DialogTitle>

@@ -5,10 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from 'axios'
 
-// Define user types
-type UserRole = "USER" | "ADMIN"
-
-interface User {
+type User = {
   id: string
   name: string
   email: string
@@ -24,11 +21,10 @@ interface AuthContextType {
   logout: () => void
 }
 
-// Create the auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -36,14 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Load user from localStorage on initial render
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser))
       } catch (error) {
-        console.error("Failed to parse stored user:", error)
         localStorage.removeItem("user")
       }
     }
@@ -112,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
