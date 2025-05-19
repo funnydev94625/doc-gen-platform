@@ -43,13 +43,11 @@ exports.register = async (req, res) => {
 
 // Login User
 exports.login = async (req, res) => {
-  console.log(req.body);  
   try {
     const { email, password } = req.body;
 
     // Check if user exists
     let user = await User.findOne({ email });
-    console.log(user);
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
@@ -64,17 +62,17 @@ exports.login = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role
+        isAdmin: user.isAdmin
       }
     };
-
+    console.log(user)
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
       { expiresIn: '5d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, role: user.role });
+        res.json({ name: user.name, email: user.email, token: token, isAdmin: user.isAdmin });
       }
     );
   } catch (err) {
