@@ -44,8 +44,7 @@ export default function AdminLayout({
         <Sidebar>
           <SidebarHeader className="border-b">
             <div className="flex items-center px-4 py-2">
-              <TermlyLogo className="h-8 w-8" />
-              <span className="ml-2 text-xl font-bold">Termly Admin</span>
+              <span className="ml-2 text-xl font-bold">Doc Gen Admin</span>
             </div>
           </SidebarHeader>
           <SidebarContent>

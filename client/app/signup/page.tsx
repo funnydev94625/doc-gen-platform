@@ -55,8 +55,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen flex-col items-center justify-center py-12">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
-          <TermlyLogo className="mx-auto h-10 w-10" />
-          <h1 className="text-2xl font-semibold tracking-tight">Create your Termly account</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Create your Doc Gen account</h1>
           <p className="text-sm text-muted-foreground">Finish signing up and take the next step towards compliance</p>
         </div>
 
@@ -155,7 +154,7 @@ export default function SignupPage() {
               htmlFor="newsletter"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Send me Termly news, feature updates, discounts, and offers
+              Send me Doc Gem news, feature updates, discounts, and offers
             </label>
           </div>
 
@@ -164,7 +163,7 @@ export default function SignupPage() {
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            By signing up, I agree to Termly&apos;s{" "}
+            By signing up, I agree to Doc Gen&apos;s{" "}
             <Link href="#" className="text-blue-500 hover:text-blue-600">
               Terms of Use
             </Link>{" "}

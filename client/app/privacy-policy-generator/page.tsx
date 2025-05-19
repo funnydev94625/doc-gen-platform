@@ -429,7 +429,7 @@ export default function PrivacyPolicyGenerator() {
               Consent Preferences
             </Link>
           </div>
-          <p className="text-sm text-gray-500">© 2024 Termly. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© 2025 Doc Gen. All rights reserved.</p>
         </div>
       </footer>
     </div>
