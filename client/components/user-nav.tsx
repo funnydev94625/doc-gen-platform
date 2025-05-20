@@ -16,15 +16,15 @@ import Link from "next/link"
 
 export function UserNav() {
   const { user, logout, isAdmin } = useAuth()
-  
+
   // If no user is logged in, show login/signup buttons
   if (!user) {
     return (
       <div className="flex items-center gap-4">
-        <Link href="/login">
-          <Button variant="ghost">Log in</Button>
+        <Link href="/auth/signin">
+          <Button variant="ghost">Sign in</Button>
         </Link>
-        <Link href="/signup">
+        <Link href="/auth/signup">
           <Button className="bg-teal-400 hover:bg-teal-500 text-white">Sign up</Button>
         </Link>
       </div>

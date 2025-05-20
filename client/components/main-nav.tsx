@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { TermlyLogo } from "@/components/termly-logo"
 import { useAuth } from "@/contexts/auth-context"
+import { usePathname } from "next/navigation"
 
 export function MainNav() {
   const { user, isAdmin } = useAuth()

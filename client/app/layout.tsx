@@ -31,7 +31,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>
             <div className="flex flex-col min-h-screen">
-              {!pathname.startsWith("/admin") && <header className="border-b">
+              {!pathname.startsWith("/admin") && !pathname.startsWith('/auth') && <header className="border-b">
                 <div className="flex h-16 items-center px-4 md:px-6 justify-between">
                   <MainNav />
                   <UserNav />

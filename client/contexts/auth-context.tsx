@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from 'axios'
+import { LoadingPage } from "@/components/ui/loading-page"
 
 type User = {
   id: string
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
   
   const login = (email: string, password: string) => {
+    setIsLoading(true)
     return api.post("/api/auth/login", { email, password })
       .then((response) => {
         const user = response.data
@@ -66,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Signup function - not async at the component level
 
   const signup = (name: string, email: string, password: string) => {
+    setIsLoading(true)
     return api.post("/api/auth/register", { name, email, password })
       .then((response) => {
         const user = response.data
@@ -101,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
       }}
     >
+      {isLoading && <LoadingPage />}
       {children}
     </AuthContext.Provider>
   )
