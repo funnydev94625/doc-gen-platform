@@ -29,4 +29,9 @@ router.put('/:id', [auth, admin], templateController.updateTemplate);
 // @access  Private (Admin only)
 router.delete('/:id', [auth, admin], templateController.deleteTemplate);
 
+// @route   POST api/templates/plain
+// @desc    Create a new plain document from template
+// @access  Private (Admin only) ?????????
+router.post('/plain', templateController.createPlain);
+
 module.exports = router;
