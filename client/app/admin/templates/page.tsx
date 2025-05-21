@@ -137,6 +137,28 @@ export default function TemplateManagement() {
   const [selectedTemplate, setSelectedTemplate] = useState<(typeof templates)[0] | null>(null)
   const [openEditTemplate, setOpenEditTemplate] = useState(false)
   const [openDeleteTemplate, setOpenDeleteTemplate] = useState(false)
+  const [templateInfo, setTemplateInfo] = useState({
+    name: "",
+    description: ""
+  })
+
+  const handleAddTemplate = () => {
+    console.log(templateInfo)
+  }
+
+  const onChangeTemplateName = (e: any) => {
+    setTemplateInfo({
+      ...templateInfo,
+      name: e.target.value
+    })
+  }
+
+  const onChangeTemplateDescription = (e: any) => {
+    setTemplateInfo({
+      ...templateInfo,
+      description: e.target.value
+    })
+  }
 
   const filteredTemplates = templates.filter(
     (template) =>
@@ -265,26 +287,26 @@ export default function TemplateManagement() {
       </Card>
 
       {/* Add Template Dialog */}
-      <Dialog open={false} onOpenChange={setOpenAddTemplate}>
+      <Dialog open={openAddTemplate} onOpenChange={setOpenAddTemplate}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Add New Template</DialogTitle>
             <DialogDescription>Create a new policy template for users to generate from.</DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            {/* <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="content">Template Content</TabsTrigger>
               <TabsTrigger value="options">Options</TabsTrigger>
-            </TabsList>
+            </TabsList> */}
             <TabsContent value="basic" className="space-y-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
                   Template Name
                 </Label>
-                <Input id="name" className="col-span-3" placeholder="e.g. Privacy Policy" />
+                <Input id="name" className="col-span-3" placeholder="e.g. Privacy Policy" onChange={onChangeTemplateName} />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
+              {/* <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="type" className="text-right">
                   Type
                 </Label>
@@ -299,8 +321,8 @@ export default function TemplateManagement() {
                     <SelectItem value="ecommerce">E-commerce</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
+              </div> */}
+              {/* <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="category" className="text-right">
                   Category
                 </Label>
@@ -330,7 +352,7 @@ export default function TemplateManagement() {
                     <SelectItem value="published">Published</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="description" className="text-right">
                   Description
@@ -340,49 +362,8 @@ export default function TemplateManagement() {
                   className="col-span-3"
                   placeholder="Brief description of this template"
                   rows={3}
+                  onChange={onChangeTemplateDescription}
                 />
-              </div>
-            </TabsContent>
-            <TabsContent value="content" className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="template-content">Template Content</Label>
-                <Textarea
-                  id="template-content"
-                  className="min-h-[300px] font-mono text-sm"
-                  placeholder="Enter template content with variables like {{company_name}}, {{website_url}}, etc."
-                />
-                <p className="text-sm text-muted-foreground">
-                  Use variables in double curly braces that will be replaced when users generate policies.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="options" className="space-y-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="variables" className="text-right">
-                  Available Variables
-                </Label>
-                <Textarea
-                  id="variables"
-                  className="col-span-3"
-                  placeholder="company_name, website_url, contact_email"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="applicable-laws" className="text-right">
-                  Applicable Laws
-                </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select applicable laws" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gdpr">GDPR</SelectItem>
-                    <SelectItem value="ccpa">CCPA</SelectItem>
-                    <SelectItem value="cpra">CPRA</SelectItem>
-                    <SelectItem value="multiple">Multiple Laws</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </TabsContent>
           </Tabs>
@@ -390,7 +371,7 @@ export default function TemplateManagement() {
             <Button variant="outline" onClick={() => setOpenAddTemplate(false)}>
               Cancel
             </Button>
-            <Button type="submit">Create Template</Button>
+            <Button type="submit" onClick={() => handleAddTemplate()}>Create Template</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -27,17 +27,18 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    console.log(isAdmin)
-    if (!isAdmin) {
+    setTimeout(() => console.log(isAdmin), 1000)
+    if (user && !isAdmin) {
       router.push("/")
     }
-    return () => {}
+    return () => { }
   }, [])
-
+  if (pathname.startsWith('/admin/templates/add'))
+    return <div>{ children }</div>
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
