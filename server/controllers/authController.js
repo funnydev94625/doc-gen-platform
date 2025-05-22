@@ -31,10 +31,24 @@ exports.register = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role
+        isAdmin: user.isAdmin
       }
     };
-    res.json(user);
+    
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '5d' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ 
+          name: user.name, 
+          email: user.email, 
+          token: token, 
+          isAdmin: user.isAdmin 
+        });
+      }
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
