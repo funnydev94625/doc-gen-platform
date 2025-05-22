@@ -12,17 +12,17 @@ const TemplateSchema = new Schema({
   },
   documentType: {
     type: String,
-    required: true
+    // required: true
   },
   questionSchema: {
     type: Object,
-    required: true
+    // required: true
   },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
+  // createdBy: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'User',
+  //   required: true
+  // },
   createdAt: {
     type: Date,
     default: Date.now

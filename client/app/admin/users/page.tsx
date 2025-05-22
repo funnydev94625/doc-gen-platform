@@ -1,7 +1,3 @@
-"use client"
-
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -13,165 +9,140 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronDown, Download, MoreHorizontal, Search, Trash, UserPlus } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { MoreHorizontal, Plus, Search, Filter } from "lucide-react"
 
 // Sample user data
 const users = [
   {
-    id: 1,
-    name: "John Doe",
+    id: "1",
+    name: "John Smith",
     email: "john@example.com",
     role: "Admin",
     status: "Active",
-    lastLogin: "May 16, 2024",
-    createdAt: "Jan 10, 2024",
+    lastActive: "2023-05-20",
+    policies: 8,
   },
   {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
+    id: "2",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
     role: "User",
     status: "Active",
-    lastLogin: "May 15, 2024",
-    createdAt: "Feb 22, 2024",
+    lastActive: "2023-05-19",
+    policies: 5,
   },
   {
-    id: 3,
-    name: "Robert Johnson",
-    email: "robert@example.com",
-    role: "Editor",
+    id: "3",
+    name: "Michael Brown",
+    email: "michael@example.com",
+    role: "User",
     status: "Inactive",
-    lastLogin: "Apr 30, 2024",
-    createdAt: "Mar 15, 2024",
+    lastActive: "2023-04-15",
+    policies: 3,
   },
   {
-    id: 4,
+    id: "4",
     name: "Emily Davis",
     email: "emily@example.com",
     role: "User",
     status: "Active",
-    lastLogin: "May 14, 2024",
-    createdAt: "Dec 5, 2023",
+    lastActive: "2023-05-18",
+    policies: 6,
   },
   {
-    id: 5,
-    name: "Michael Wilson",
-    email: "michael@example.com",
-    role: "User",
-    status: "Pending",
-    lastLogin: "Never",
-    createdAt: "May 1, 2024",
-  },
-  {
-    id: 6,
-    name: "Sarah Thompson",
-    email: "sarah@example.com",
-    role: "Editor",
+    id: "5",
+    name: "Robert Wilson",
+    email: "robert@example.com",
+    role: "Admin",
     status: "Active",
-    lastLogin: "May 10, 2024",
-    createdAt: "Nov 18, 2023",
+    lastActive: "2023-05-20",
+    policies: 12,
   },
   {
-    id: 7,
-    name: "David Martinez",
-    email: "david@example.com",
-    role: "User",
-    status: "Inactive",
-    lastLogin: "Mar 22, 2024",
-    createdAt: "Oct 7, 2023",
-  },
-  {
-    id: 8,
-    name: "Jennifer Garcia",
+    id: "6",
+    name: "Jennifer Taylor",
     email: "jennifer@example.com",
     role: "User",
     status: "Active",
-    lastLogin: "May 12, 2024",
-    createdAt: "Apr 14, 2024",
+    lastActive: "2023-05-17",
+    policies: 4,
   },
   {
-    id: 9,
-    name: "Christopher Lee",
-    email: "chris@example.com",
-    role: "Admin",
-    status: "Active",
-    lastLogin: "May 16, 2024",
-    createdAt: "Sep 30, 2023",
-  },
-  {
-    id: 10,
-    name: "Amanda White",
-    email: "amanda@example.com",
+    id: "7",
+    name: "David Martinez",
+    email: "david@example.com",
     role: "User",
-    status: "Pending",
-    lastLogin: "Never",
-    createdAt: "May 5, 2024",
+    status: "Suspended",
+    lastActive: "2023-03-10",
+    policies: 0,
+  },
+  {
+    id: "8",
+    name: "Lisa Anderson",
+    email: "lisa@example.com",
+    role: "User",
+    status: "Active",
+    lastActive: "2023-05-16",
+    policies: 7,
+  },
+  {
+    id: "9",
+    name: "James Thomas",
+    email: "james@example.com",
+    role: "User",
+    status: "Active",
+    lastActive: "2023-05-15",
+    policies: 2,
+  },
+  {
+    id: "10",
+    name: "Patricia White",
+    email: "patricia@example.com",
+    role: "User",
+    status: "Inactive",
+    lastActive: "2023-04-20",
+    policies: 1,
   },
 ]
 
-export default function UserManagement() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [openAddUser, setOpenAddUser] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<(typeof users)[0] | null>(null)
-  const [openEditUser, setOpenEditUser] = useState(false)
-  const [openDeleteUser, setOpenDeleteUser] = useState(false)
-
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
-
+export default function UsersPage() {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">Manage user accounts and permissions</p>
         </div>
-        <Button onClick={() => setOpenAddUser(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
           Add User
         </Button>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>Users</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>All Users</CardTitle>
             <div className="flex items-center gap-2">
-              <div className="relative">
+              <div className="relative w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search users..."
-                  className="pl-8 w-[250px]"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <Input type="search" placeholder="Search users..." className="pl-8" />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                    <ChevronDown className="ml-2 h-4 w-4" />
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Export as CSV</DropdownMenuItem>
-                  <DropdownMenuItem>Export as Excel</DropdownMenuItem>
-                  <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Role</DropdownMenuItem>
+                  <DropdownMenuItem>Status</DropdownMenuItem>
+                  <DropdownMenuItem>Last Active</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -181,66 +152,62 @@ export default function UserManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Last Login</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Last Active</TableHead>
+                <TableHead>Policies</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
                   <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={`/placeholder.svg?height=32&width=32&text=${user.name.charAt(0)}`} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.role === "Admin" ? "default" : "outline"}>{user.role}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={
                         user.status === "Active"
-                          ? "bg-green-100 text-green-800"
+                          ? "border-green-500 text-green-500"
                           : user.status === "Inactive"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-yellow-100 text-yellow-800"
-                      }`}
+                            ? "border-gray-500 text-gray-500"
+                            : "border-red-500 text-red-500"
+                      }
                     >
                       {user.status}
-                    </span>
+                    </Badge>
                   </TableCell>
-                  <TableCell>{user.lastLogin}</TableCell>
-                  <TableCell>{user.createdAt}</TableCell>
+                  <TableCell>{user.lastActive}</TableCell>
+                  <TableCell>{user.policies}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setOpenEditUser(true)
-                          }}
-                        >
-                          Edit user
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>View activity</DropdownMenuItem>
-                        <DropdownMenuItem>Reset password</DropdownMenuItem>
+                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem>Edit User</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setOpenDeleteUser(true)
-                          }}
-                        >
-                          Delete user
-                        </DropdownMenuItem>
+                        <DropdownMenuItem>Reset Password</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600">Suspend User</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -248,145 +215,21 @@ export default function UserManagement() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      {/* Add User Dialog */}
-      <Dialog open={openAddUser} onOpenChange={setOpenAddUser}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>Create a new user account. The user will receive an email invitation.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" className="col-span-3" />
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing <strong>1-10</strong> of <strong>42</strong> users
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input id="email" type="email" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="role" className="text-right">
-                Role
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm">
+                Next
+              </Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenAddUser(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Add User</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={openEditUser} onOpenChange={setOpenEditUser}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information and permissions.</DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <Input id="edit-name" defaultValue={selectedUser.name} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-email" className="text-right">
-                  Email
-                </Label>
-                <Input id="edit-email" type="email" defaultValue={selectedUser.email} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-role" className="text-right">
-                  Role
-                </Label>
-                <Select defaultValue={selectedUser.role.toLowerCase()}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-status" className="text-right">
-                  Status
-                </Label>
-                <Select defaultValue={selectedUser.status.toLowerCase()}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEditUser(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete User Dialog */}
-      <Dialog open={openDeleteUser} onOpenChange={setOpenDeleteUser}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="py-4">
-              <p className="mb-2">You are about to delete:</p>
-              <div className="rounded-md bg-muted p-4">
-                <p className="font-medium">{selectedUser.name}</p>
-                <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDeleteUser(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive">
-              <Trash className="mr-2 h-4 w-4" />
-              Delete User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
     </div>
   )
 }
