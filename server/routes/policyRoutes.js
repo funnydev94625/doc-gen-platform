@@ -30,3 +30,5 @@ router.put('/:id', [auth, admin], policyController.updatePolicy);
 router.delete('/:id', [auth, admin], policyController.deletePolicy);
 
 module.exports = router;
+
+

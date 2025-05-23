@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true)
     try {
       const response = await api.post("/api/auth/register", userData)
-      
+
       if (response.status === 200 || response.status === 201) {
         // After successful registration, log the user in
         await login(userData.email, userData.password)
@@ -107,34 +107,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await api.post("/api/auth/login", { email, password })
       const data = response.data
-      
+
       if (!data.token) {
         throw new Error("No authentication token received")
       }
-      
+
       // Store token in localStorage
       localStorage.setItem("token", data.token)
-      
+
       // Create user object from response
       const userData = {
         name: data.name,
         email: data.email,
         isAdmin: data.isAdmin
       }
-      
+
       // Update state and localStorage
       setUser(userData)
       localStorage.setItem("user", JSON.stringify(userData))
-      
+
       // Set token for future API requests
       api.defaults.headers.common['x-auth-token'] = data.token
-      
+
       // Redirect based on user role
-      if (userData.isAdmin) {
-        router.push("/admin")
-      } else {
-        router.push("/")
-      }
+      router.push("/")
     } catch (error: any) {
       console.error("Login error:", error)
       if (error.response && error.response.data && error.response.data.msg) {
@@ -151,14 +147,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     // Remove token from axios headers
     delete api.defaults.headers.common['x-auth-token']
-    
+
     // Clear localStorage
     localStorage.removeItem("token")
     localStorage.removeItem("user")
-    
+
     // Reset state
     setUser(null)
-    
+
     // Redirect to home
     router.push("/")
   }

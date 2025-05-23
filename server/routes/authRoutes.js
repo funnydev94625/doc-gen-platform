@@ -29,6 +29,15 @@ router.post(
   authController.login
 );
 
+router.post(
+  '/admin_login',
+  [
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password is required').exists()
+  ],
+  authController.adminLogin
+);
+
 // @route   POST api/auth/forgot-password
 // @desc    Send password reset email
 // @access  Public
