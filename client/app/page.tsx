@@ -318,23 +318,30 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tighter">Have Questions? Reach Out!</h2>
-            <p className="text-xl text-muted-foreground">We will be back in touch within 24 hours.</p>
-            <div className="w-full max-w-md space-y-4">
-              <form className="space-y-4">
-                <Input placeholder="Name" required />
-                <Input type="email" placeholder="Email" required />
-                <Input placeholder="Company" required />
-                <Input placeholder="Subject" required />
-                <Textarea placeholder="Message" className="min-h-[120px]" />
-                <Button type="submit" className="w-full">
-                  Contact Us
-                </Button>
-              </form>
+       <section className="w-full py-16 md:py-28 lg:py-36 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container px-4 md:px-6 flex justify-center">
+          <div className="w-full max-w bg-white rounded-2xl shadow-xl p-8 md:p-12">
+            <div className="mb-8 text-center">
+              <h2 className="text-4xl font-extrabold tracking-tight mb-2 text-gray-900">
+                Have Questions? <span className="text-primary">Reach Out!</span>
+              </h2>
+              <p className="text-lg text-gray-500">
+                We’ll get back to you within 24 hours.
+              </p>
             </div>
+            <form className="space-y-5">
+              <Input placeholder="Name" required className="rounded-lg" />
+              <Input type="email" placeholder="Email" required className="rounded-lg" />
+              <Input placeholder="Company" required className="rounded-lg" />
+              <Input placeholder="Subject" required className="rounded-lg" />
+              <Textarea placeholder="Message" className="min-h-[120px] rounded-lg" />
+              <Button
+                type="submit"
+                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold py-3 text-lg shadow"
+              >
+                Contact Us
+              </Button>
+            </form>
           </div>
         </div>
       </section>
