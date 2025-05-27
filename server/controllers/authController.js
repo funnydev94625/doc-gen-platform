@@ -8,13 +8,13 @@ const { validationResult } = require("express-validator");
 // Register User
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, organization } = req.body;
 
-      // // Check if user already exists
-      // let user = await User.findOne({ email });
-      // if (user) {
-      //   return res.status(400).json({ msg: "User already exists" });
-      // }
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
 
     // Generate verification token
     const verificationToken = uuidv4();
@@ -26,13 +26,14 @@ exports.register = async (req, res) => {
       passwordHash: password,
       verificationToken,
       isVerified: false,
+      organization
     });
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     user.passwordHash = await bcrypt.hash(password, salt);
 
-    // await user.save();
+    await user.save();
 
     console.log({
       user: process.env.SMTP_USER,
@@ -52,11 +53,11 @@ exports.register = async (req, res) => {
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-    await transporter.sendMail({
-      to: user.email,
-      subject: "Verify your email",
-      html: `<p>Click <a href="${verifyUrl}">here</a> to verify your email.</p>`,
-    });
+    // await transporter.sendMail({
+    //   to: user.email,
+    //   subject: "Verify your email",
+    //   html: `<p>Click <a href="${verifyUrl}">here</a> to verify your email.</p>`,
+    // });
 
     res.json({
       msg: "Registration successful. Please check your email to verify your account.",
@@ -78,11 +79,11 @@ exports.login = async (req, res) => {
     }
 
     // Check if email is verified
-    if (!user.isVerified) {
-      return res
-        .status(403)
-        .json({ msg: "Please verify your email before logging in." });
-    }
+    // if (!user.isVerified) {
+    //   return res
+    //     .status(403)
+    //     .json({ msg: "Please verify your email before logging in." });
+    // }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {

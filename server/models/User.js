@@ -8,7 +8,8 @@ const UserSchema = new Schema({
   isAdmin: { type: Boolean, default: false, required: true },
   isVerified: { type: Boolean, default: false }, // <-- NEW
   verificationToken: { type: String },           // <-- NEW
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  organization: {type: String}
 });
 
 module.exports = mongoose.model('User', UserSchema);

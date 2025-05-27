@@ -1,21 +1,22 @@
 // pages/verify-email.tsx or app/verify-email/page.tsx
-import { useEffect, useState } from "react";
+'use client'
+import { useEffect, useState } from "react"
 
 export default function VerifyEmailPage() {
-  const [message, setMessage] = useState("Verifying...");
-  const [showResend, setShowResend] = useState(false);
-  const [resendStatus, setResendStatus] = useState("");
-  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("Verifying...")
+  const [showResend, setShowResend] = useState(false)
+  const [resendStatus, setResendStatus] = useState("")
+  const [email, setEmail] = useState("")
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const emailParam = params.get("email");
-    if (emailParam) setEmail(emailParam);
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get("token")
+    const emailParam = params.get("email")
+    if (emailParam) setEmail(emailParam)
 
     if (!token) {
-      setMessage("Invalid verification link.");
-      setShowResend(true);
+      setMessage("Invalid verification link.")
+      setShowResend(true)
       return;
     }
     fetch(`/api/auth/verify-email?token=${token}`)
@@ -23,24 +24,24 @@ export default function VerifyEmailPage() {
       .then(data => {
         setMessage(data.msg || "Verification failed.");
         if (data.msg && data.msg.toLowerCase().includes("invalid")) {
-          setShowResend(true);
+          setShowResend(true)
         }
       })
       .catch(() => {
-        setMessage("Verification failed.");
-        setShowResend(true);
+        setMessage("Verification failed.")
+        setShowResend(true)
       });
   }, []);
 
   const handleResend = async () => {
-    setResendStatus("Sending...");
+    setResendStatus("Sending...")
     const res = await fetch("/api/auth/resend-verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    const data = await res.json();
-    setResendStatus(data.msg || "Failed to resend email.");
+    const data = await res.json()
+    setResendStatus(data.msg || "Failed to resend email.")
   };
 
   return (
@@ -69,5 +70,5 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

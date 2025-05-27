@@ -19,7 +19,7 @@ export default function SignUpPage() {
   const [userInfo, setUserInfo] = useState({
     "first-name": "",
     "last-name": "",
-    company: "",
+    organization: "",
     email: "",
     password: ""
   })
@@ -105,7 +105,7 @@ export default function SignUpPage() {
         name: `${userInfo["first-name"]} ${userInfo["last-name"]}`,
         email: userInfo.email,
         password: userInfo.password,
-        // company: userInfo.company
+        organization: userInfo.organization
       }
       
       await register(userData)
@@ -118,7 +118,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-hidden">
       {/* Left side - Image */}
       <div className="relative hidden w-0 flex-1 lg:block">
         <div className="absolute inset-0 h-full w-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-500 via-blue-600 to-blue-700 overflow-hidden">
@@ -206,7 +206,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+      <div className="flex flex-1 flex-col justify-center px-4 py-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="flex flex-col items-center">
             <Link href="/">
@@ -270,25 +270,25 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* <div className="space-y-2">
-                <Label htmlFor="company" className="flex items-center gap-1.5">
+              <div className="space-y-2">
+                <Label htmlFor="organization" className="flex items-center gap-1.5">
                   <Building className="h-4 w-4" />
-                  Company
+                  Organization
                 </Label>
                 <Input
-                  id="company"
-                  name="company"
+                  id="organization"
+                  name="organization"
                   type="text"
                   autoComplete="organization"
                   required
-                  className={`block w-full ${errors.company ? "border-red-500" : ""}`}
+                  className={`block w-full ${errors.organization ? "border-red-500" : ""}`}
                   onChange={handleChange}
-                  value={userInfo.company}
+                  value={userInfo.organization}
                 />
-                {errors.company && (
-                  <p className="text-xs text-red-500 mt-1">{errors.company}</p>
+                {errors.organization && (
+                  <p className="text-xs text-red-500 mt-1">{errors.organization}</p>
                 )}
-              </div> */}
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-1.5">

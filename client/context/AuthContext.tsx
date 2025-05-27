@@ -84,7 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.status === 200 || response.status === 201) {
         // After successful registration, log the user in
-        await login(userData.email, userData.password)
+        // await login(userData.email, userData.password)
+        router.push('/auth/signin')
         return
       } else {
         throw new Error(response.data.msg || "Registration failed")
@@ -130,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       api.defaults.headers.common['x-auth-token'] = data.token
 
       // Redirect based on user role
-      router.push("/")
+      router.push("/policies")
     } catch (error: any) {
       console.error("Login error:", error)
       if (error.response && error.response.data && error.response.data.msg) {
