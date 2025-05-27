@@ -67,4 +67,14 @@ router.post('/logout', auth, (req, res) => {
   res.json({ msg: 'Logged out successfully' });
 });
 
+// @route   GET api/auth/verify-email
+// @desc    Verify user email
+// @access  Public
+router.get('/verify-email', authController.verifyEmail);
+
+// @route   POST api/auth/resend-verification
+// @desc    Resend verification email
+// @access  Public
+router.post('/resend-verification', authController.resendVerification);
+
 module.exports = router;
