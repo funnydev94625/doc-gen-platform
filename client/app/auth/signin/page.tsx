@@ -49,7 +49,7 @@ export default function SignInPage() {
             </Link>
             <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight">Sign in to your account</h2>
             <p className="mt-2 text-sm text-muted-foreground text-center">
-              Access your customized cybersecurity policies and continue building your security program
+              Access your cybersecurity policies to update for a full year
             </p>
           </div>
 

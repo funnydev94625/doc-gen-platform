@@ -25,18 +25,13 @@ export default function AboutPage() {
         <div className="space-y-6">
           <h2 className="text-3xl font-bold">Our Story</h2>
           <p className="text-lg text-muted-foreground">
-            Rose CISO Group (DBA October Security) is a boutique Cybersecurity Board Communications and Strategy
-            advisory services firm for F1000 organizations.
+            The founder and lead CISO of Rose CISO Group, Olivia Rose, is an award-winning, two-time Chief Information Security Officer(CISO) with over 23 years of experience in Cybersecurity. Olivia innately understands the pressures the CISO is under and has tailored these policies to effectively support Cybersecurity leaders.
           </p>
           <p className="text-lg text-muted-foreground">
-            The founder and lead CISO, Olivia Rose, is an award-winning, two-time Chief Information Security Officer
-            (CISO) with over 23 years of experience in Cybersecurity. Olivia innately understands the pressures the CISO
-            is under and has tailored these policies to effectively support Cybersecurity leaders.
+            Rose CISO Group (DBA October Security) is a boutique Cybersecurity Board Communications and Strategy advisory services firm for F1000 organizations.
           </p>
           <p className="text-lg text-muted-foreground">
-            Our cybersecurity policy suite was developed to address a critical gap in the market: the need for
-            customizable, clear, and effective security policies that can adapt to an organization's security maturity
-            level.
+            Our cybersecurity policy suite was developed to address a critical gap in the market: the need for customizable, clear, and effective security policies that can adapt to an organization's security maturity level.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link href="https://www.linkedin.com/in/oliviarosecybersecurity/">

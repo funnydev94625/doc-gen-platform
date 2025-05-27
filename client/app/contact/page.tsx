@@ -56,25 +56,7 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-blue-600 mt-1" />
                 <div>
                   <h3 className="font-medium">Email</h3>
-                  <p className="text-muted-foreground">info@octobersecurity.com</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <Phone className="h-6 w-6 text-blue-600 mt-1" />
-                <div>
-                  <h3 className="font-medium">Phone</h3>
-                  <p className="text-muted-foreground">(555) 123-4567</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <MapPin className="h-6 w-6 text-blue-600 mt-1" />
-                <div>
-                  <h3 className="font-medium">Location</h3>
-                  <p className="text-muted-foreground">
-                    San Francisco, CA
-                    <br />
-                    United States
-                  </p>
+                  <p className="text-muted-foreground">Info@rosecisogroup.com</p>
                 </div>
               </div>
             </div>

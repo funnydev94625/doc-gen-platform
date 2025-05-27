@@ -8,7 +8,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">October Security</h3>
             <p className="text-sm text-muted-foreground">
-              CISO-developed cybersecurity policies designed to meet you where you are with your security program.
+              Cybersecurity policies developed and approved by CISOs
             </p>
           </div>
           <div className="space-y-4">
@@ -36,17 +36,12 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/policies" className="text-muted-foreground hover:underline">
-                  Included Policies
+                  Policies Included
                 </Link>
               </li>
               <li>
                 <Link href="/checkout" className="text-muted-foreground hover:underline">
                   Purchase
-                </Link>
-              </li>
-              <li>
-                <Link href="/customize" className="text-muted-foreground hover:underline">
-                  Customize
                 </Link>
               </li>
             </ul>

@@ -15,13 +15,13 @@ export default function Home() {
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                Generate Customized Cybersecurity Policies
+                Generate Custom Cybersecurity Policies
               </h1>
               <p className="text-xl text-muted-foreground md:text-2xl">Online and in Minutes</p>
             </div>
             <div className="space-y-4 max-w-[600px]">
               <p className="text-muted-foreground">
-                Developed and Approved by Chief Information Security Officers (CISOs)
+                Developed, Reviewed, and Approved by Chief Information Security Officers (CISO)
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link href="/policies">
@@ -40,14 +40,14 @@ export default function Home() {
 
       {/* How It Works Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
-        <div className="container px-4 md:px-6">
+        <div className="container px-3 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How It Works</h2>
             <p className="text-xl text-muted-foreground max-w-[800px]">
               Create customized cybersecurity policies in four simple steps
             </p>
           </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="relative w-48 h-48 flex items-center justify-center">
                 <div className="absolute inset-0 bg-blue-100 rounded-lg transform rotate-3"></div>
@@ -71,9 +71,9 @@ export default function Home() {
                   </svg>
                 </div>
               </div>
-              <h3 className="text-xl font-bold">Choose Your Policies</h3>
+              <h3 className="text-xl font-bold">Choose Your Policy to Get Started</h3>
               <p className="text-muted-foreground">
-                Browse our comprehensive suite of CISO-developed cybersecurity policies
+                From our comprehensive suite of CISO-developed cybersecurity policies
               </p>
             </div>
             <div className="flex flex-col items-center text-center space-y-4">
@@ -98,32 +98,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold">Answer Simple Questions</h3>
               <p className="text-muted-foreground">
-                Our policy creator will turn your answers into customized security policies
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                <div className="absolute inset-0 bg-blue-100 rounded-lg transform rotate-3"></div>
-                <div className="relative bg-blue-600 rounded-lg w-40 h-24 flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-xl font-bold">Customize Language</h3>
-              <p className="text-muted-foreground">
-                Select appropriate verbs (MUST, SHOULD, MAY) to match your security maturity
+                Our policy creator will turn your responses into custom entries in the policy
               </p>
             </div>
             <div className="flex flex-col items-center text-center space-y-4">
@@ -149,56 +124,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold">Download & Implement</h3>
               <p className="text-muted-foreground">
-                Save, print, and share your finalized policies with your organization
+                Save, print, ad share your policies with your organization. Come back and edit for a full year for free
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Top Reasons to Choose Us</h2>
-            <p className="text-xl text-muted-foreground max-w-[800px]">
-              Our cybersecurity policies offer unique advantages for your organization
-            </p>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-4 md:grid-cols-2">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="rounded-full bg-blue-100 p-3">
-                <Shield className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold">NIST 2.0 & CIS 8.1 Aligned</h3>
-              <p className="text-muted-foreground">
-                Policies aligned with industry standards to ensure comprehensive coverage
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="rounded-full bg-blue-100 p-3">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold">Customizable Verbs</h3>
-              <p className="text-muted-foreground">
-                No "all or nothing" language to accurately portray your program maturity
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="rounded-full bg-blue-100 p-3">
-                <Edit className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold">Simple Language</h3>
-              <p className="text-muted-foreground">
-                Easy to understand policies with key things to remember for readers
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="rounded-full bg-blue-100 p-3">
-                <RefreshCw className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold">Update Anytime</h3>
-              <p className="text-muted-foreground">Come back and edit as your security program changes</p>
             </div>
           </div>
         </div>
@@ -216,8 +143,7 @@ export default function Home() {
                 Represent your Security Program with <span className="text-blue-600">Confidence</span>
               </h2>
               <p className="text-xl text-muted-foreground">
-                Create a full suite of CISO-Developed and Approved Cybersecurity policies designed to meet you where you
-                are at with your Security Program.
+                Create a full suite of CISO-developed and approved Cybersecurity policies,  designed to meet you where you are at with your Security Program.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -228,8 +154,8 @@ export default function Home() {
                         <Check className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium">Customizable verbs</h3>
-                        <p className="text-sm text-muted-foreground">Tailor to your maturity level</p>
+                        <h3 className="font-medium">Customized Verbs</h3>
+                        <p className="text-sm text-muted-foreground">Choose the most applicable to represent the state of your cybersecurity program</p>
                       </div>
                     </div>
                   </CardContent>
@@ -242,8 +168,8 @@ export default function Home() {
                         <Check className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium">No all-or-nothing terminology</h3>
-                        <p className="text-sm text-muted-foreground">Flexible implementation</p>
+                        <h3 className="font-medium">NIST 2.0 & CIS 8.1 Aligned</h3>
+                        <p className="text-sm text-muted-foreground">Policies are aligned with industry standards to help you meet compliance</p>
                       </div>
                     </div>
                   </CardContent>
@@ -256,8 +182,8 @@ export default function Home() {
                         <Check className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium">Simple, clear language</h3>
-                        <p className="text-sm text-muted-foreground">Easy to understand by all</p>
+                        <h3 className="font-medium">Clear Language</h3>
+                        <p className="text-sm text-muted-foreground">Easy to understand policies, each with key things to remember for readers ... and no "all or nothing" terminology</p>
                       </div>
                     </div>
                   </CardContent>
@@ -270,8 +196,8 @@ export default function Home() {
                         <Check className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium">Key things to remember</h3>
-                        <p className="text-sm text-muted-foreground">Practical implementation guides</p>
+                        <h3 className="font-medium">Come Back and Update</h3>
+                        <p className="text-sm text-muted-foreground">Three months access included for you to finalize</p>
                       </div>
                     </div>
                   </CardContent>

@@ -220,7 +220,7 @@ export default function SignUpPage() {
             </Link>
             <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight">Create your account</h2>
             <p className="mt-2 text-sm text-muted-foreground text-center">
-              Start building your cybersecurity program with CISO-developed policies
+              Create an account to come back for a full year o edit your cybersecurity policies
             </p>
           </div>
 

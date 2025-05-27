@@ -1,6 +1,10 @@
 // pages/verify-email.tsx or app/verify-email/page.tsx
 'use client'
+<<<<<<< HEAD
 import { useEffect, useState } from "react"
+=======
+import { useEffect, useState } from "react";
+>>>>>>> 857e25e (fix content from client)
 
 export default function VerifyEmailPage() {
   const [message, setMessage] = useState("Verifying...")

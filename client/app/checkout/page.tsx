@@ -11,7 +11,7 @@ export default function CheckoutPage() {
       <div className="flex flex-col items-center space-y-4 text-center mb-12">
         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Complete Your Purchase</h1>
         <p className="text-xl text-muted-foreground max-w-[800px]">
-          Get access to all cybersecurity policies and start customizing them for your organization.
+          Get access to all cybersecurity policies to set up account to start customizing them for your organization
         </p>
       </div>
 

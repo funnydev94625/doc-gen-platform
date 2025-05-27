@@ -41,17 +41,17 @@ exports.register = async (req, res) => {
     });
 
     // Send verification email
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    // const transporter = nodemailer.createTransport({
+    //   host: "smtp.gmail.com",
+    //   port: 465,
+    //   secure: true,
+    //   auth: {
+    //     user: process.env.SMTP_USER,
+    //     pass: process.env.SMTP_PASS,
+    //   },
+    // });
 
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
     // await transporter.sendMail({
     //   to: user.email,
