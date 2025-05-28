@@ -13,7 +13,7 @@ exports.register = async (req, res) => {
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(400).json({ msg: 'User already exists' });
     }
 
     // Generate verification token
@@ -35,36 +35,44 @@ exports.register = async (req, res) => {
 
     await user.save();
 
-    console.log({
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    });
-
     // Send verification email
-    // const transporter = nodemailer.createTransport({
-    //   host: "smtp.gmail.com",
-    //   port: 465,
-    //   secure: true,
-    //   auth: {
-    //     user: process.env.SMTP_USER,
-    //     pass: process.env.SMTP_PASS,
-    //   },
-    // });
-
-    // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
-    // await transporter.sendMail({
-    //   to: user.email,
-    //   subject: "Verify your email",
-    //   html: `<p>Click <a href="${verifyUrl}">here</a> to verify your email.</p>`,
-    // });
-
-    res.json({
-      msg: "Registration successful. Please check your email to verify your account.",
+    const transporter = nodemailer.createTransport({
+      // Use your SMTP config here
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
     });
+
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Verify your email",
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #f6f9fc; padding: 32px;">
+          <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px;">
+            <h2 style="color: #2563eb; margin-bottom: 16px;">Verify your email address</h2>
+            <p style="color: #333; font-size: 16px; margin-bottom: 24px;">
+              Thank you for signing up! Please verify your email address to activate your account.
+            </p>
+            <a href="${verifyUrl}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+              Verify Email
+            </a>
+            <p style="color: #888; font-size: 13px; margin-top: 32px;">
+              If you did not create an account, you can safely ignore this email.<br>
+              This link will expire after a short time for your security.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    res.json({ msg: "Registration successful. Please check your email to verify your account." });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -75,44 +83,37 @@ exports.login = async (req, res) => {
 
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     // Check if email is verified
-    // if (!user.isVerified) {
-    //   return res
-    //     .status(403)
-    //     .json({ msg: "Please verify your email before logging in." });
-    // }
+    if (!user.isVerified) {
+      return res.status(403).json({ msg: 'Please verify your email before logging in.' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     const payload = {
       user: {
         id: user.id,
-        isAdmin: user.isAdmin,
-      },
+        isAdmin: user.isAdmin
+      }
     };
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "5d" },
+      { expiresIn: '5d' },
       (err, token) => {
         if (err) throw err;
-        res.json({
-          name: user.name,
-          email: user.email,
-          token: token,
-          isAdmin: user.isAdmin,
-        });
+        res.json({ name: user.name, email: user.email, token: token, isAdmin: user.isAdmin });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -123,40 +124,35 @@ exports.adminLogin = async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email, isAdmin: true });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     // Create JWT
     const payload = {
       user: {
         id: user.id,
-        isAdmin: user.isAdmin,
-      },
+        isAdmin: user.isAdmin
+      }
     };
-    console.log(user);
+    console.log(user)
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "5d" },
+      { expiresIn: '5d' },
       (err, token) => {
         if (err) throw err;
-        res.json({
-          name: user.name,
-          email: user.email,
-          token: token,
-          isAdmin: user.isAdmin,
-        });
+        res.json({ name: user.name, email: user.email, token: token, isAdmin: user.isAdmin });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -166,12 +162,10 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     // In a real application, send an email with a reset link
-    res.json({
-      msg: "If an account with this email exists, a password reset link has been sent.",
-    });
+    res.json({ msg: 'If an account with this email exists, a password reset link has been sent.' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -181,10 +175,10 @@ exports.resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
 
     // In a real application, verify the token and reset the password
-    res.json({ msg: "Password has been reset successfully" });
+    res.json({ msg: 'Password has been reset successfully' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -194,9 +188,7 @@ exports.verifyEmail = async (req, res) => {
     const { token } = req.query;
     const user = await User.findOne({ verificationToken: token });
     if (!user) {
-      return res
-        .status(400)
-        .json({ msg: "Invalid or expired verification token." });
+      return res.status(400).json({ msg: "Invalid or expired verification token." });
     }
     user.isVerified = true;
     user.verificationToken = undefined;
@@ -204,7 +196,7 @@ exports.verifyEmail = async (req, res) => {
     res.json({ msg: "Email verified successfully. You can now log in." });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
@@ -216,8 +208,7 @@ exports.resendVerification = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ msg: "User not found." });
-    if (user.isVerified)
-      return res.status(400).json({ msg: "Email is already verified." });
+    if (user.isVerified) return res.status(400).json({ msg: "Email is already verified." });
 
     // Generate a new token
     const verificationToken = uuidv4();
@@ -226,23 +217,35 @@ exports.resendVerification = async (req, res) => {
 
     // Send verification email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: 'gmail',
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+        pass: process.env.SMTP_PASS
+      }
     });
 
-    const verifyUrl = `${
-      process.env.FRONTEND_URL
-    }/verify-email?token=${verificationToken}&email=${encodeURIComponent(
-      email
-    )}`;
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
 
     await transporter.sendMail({
       to: user.email,
       subject: "Verify your email",
-      html: `<p>Click <a href="${verifyUrl}">here</a> to verify your email.</p>`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #f6f9fc; padding: 32px;">
+          <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px;">
+            <h2 style="color: #2563eb; margin-bottom: 16px;">Verify your email address</h2>
+            <p style="color: #333; font-size: 16px; margin-bottom: 24px;">
+              Thank you for signing up! Please verify your email address to activate your account.
+            </p>
+            <a href="${verifyUrl}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+              Verify Email
+            </a>
+            <p style="color: #888; font-size: 13px; margin-top: 32px;">
+              If you did not create an account, you can safely ignore this email.<br>
+              This link will expire after a short time for your security.
+            </p>
+          </div>
+        </div>
+      `,
     });
 
     res.json({ msg: "Verification email sent. Please check your inbox." });

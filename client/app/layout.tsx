@@ -18,16 +18,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-
+  const showheadefooter = !pathname.startsWith('/auth') && !pathname.startsWith('/admin') && !pathname.startsWith('/verify-email')
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="flex min-h-screen flex-col">
             <AuthProvider>
-              {!pathname.startsWith('/auth') && !pathname.startsWith('/admin') && <Header />}
+              {showheadefooter && <Header />}
               <main className="flex-1">{children}</main>
-              {!pathname.startsWith('/auth') && !pathname.startsWith('/admin') && <Footer />}
+              {showheadefooter && <Footer />}
             </AuthProvider>
           </div>
         </ThemeProvider>
