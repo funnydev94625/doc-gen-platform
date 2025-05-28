@@ -1,3 +1,5 @@
+'use client'
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -5,12 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Shield, FileText, RefreshCw, Edit, Check, ArrowRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { useAuth } from "@/context/AuthContext"
 
 export default function Home() {
+  const { user } = useAuth()
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-blue-50 to-white">
+      <section className="w-full py-12 md:py-24 lg:py-20 bg-gradient-to-b from-blue-50 to-white">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
@@ -20,14 +24,43 @@ export default function Home() {
               <p className="text-xl text-muted-foreground md:text-2xl">Online and in Minutes</p>
             </div>
             <div className="space-y-4 max-w-[600px]">
-              <p className="text-muted-foreground">
-                Developed, Reviewed, and Approved by Chief Information Security Officers (CISO)
-              </p>
+              <ul className="text-muted-foreground space-y-2 text-base md:text-lg text-left mx-auto max-w-xl mt-2">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">
+                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span>
+                    Developed, Reviewed, and Approved by Chief Information Security Officers (CISO)
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">
+                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span>
+                    Aligned with NIST 2.0 and CIS 8.1
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1">
+                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span>
+                    Customizable Verbs and No "All or Nothing" Language to Accurately Portray your Program Maturity
+                  </span>
+                </li>
+              </ul>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link href="/policies">
                   <Button size="lg">See Included Policies</Button>
                 </Link>
-                <Link href="/checkout">
+                <Link href={user && user.email ? "/checkout" : '/auth/signin'}>
                   <Button size="lg" variant="outline">
                     Buy Now
                   </Button>
@@ -39,12 +72,12 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
+      <section className="w-full py-8 md:py-16 lg:py-20 bg-white">
         <div className="container px-3 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How It Works</h2>
             <p className="text-xl text-muted-foreground max-w-[800px]">
-              Create customized cybersecurity policies in four simple steps
+              Create customized cybersecurity policies in three simple steps
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -124,7 +157,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold">Download & Implement</h3>
               <p className="text-muted-foreground">
-                Save, print, ad share your policies with your organization. Come back and edit for a full year for free
+                Save, print, and share your policies with your organization. Come back <br /> and edit for a full year for free
               </p>
             </div>
           </div>
@@ -197,7 +230,7 @@ export default function Home() {
                       </div>
                       <div>
                         <h3 className="font-medium">Come Back and Update</h3>
-                        <p className="text-sm text-muted-foreground">Three months access included for you to finalize</p>
+                        <p className="text-sm text-muted-foreground">A full year access included for you to finalize</p>
                       </div>
                     </div>
                   </CardContent>

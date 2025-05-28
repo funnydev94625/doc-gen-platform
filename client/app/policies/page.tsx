@@ -23,6 +23,7 @@ const policies = [
 
 export default function PoliciesPage() {
 	const { user } = useAuth()
+	const logined = user && user.email
 	return (
 		<div className="container px-4 py-12 md:px-6 md:py-24">
 			<div className="flex flex-col items-center space-y-4 text-center mb-12">
@@ -54,7 +55,7 @@ export default function PoliciesPage() {
 							</p>
 						</CardContent>
 						<CardFooter className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4">
-							<Link href="/checkout" className="w-full sm:w-1/2">
+							<Link href={user && user.email ? "/checkout" : '/auth/signin'} className="w-full sm:w-1/2">
 								<Button
 									className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold shadow hover:from-blue-600 hover:to-blue-800 transition"
 									variant="default"
@@ -66,7 +67,7 @@ export default function PoliciesPage() {
 									</span>
 								</Button>
 							</Link>
-							{user && user.email && (
+							{logined && (
 								<Link href="/checkout" className="w-full sm:w-1/2">
 									<Button
 										className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold shadow hover:from-green-600 hover:to-green-800 transition"
@@ -98,7 +99,7 @@ export default function PoliciesPage() {
 			</div>
 
 			<div className="mt-12 flex justify-center">
-				<Link href="/checkout">
+				<Link href={user && user.email ? "/checkout" : '/auth/signin'}>
 					<Button size="lg">Get Started!</Button>
 				</Link>
 			</div>
