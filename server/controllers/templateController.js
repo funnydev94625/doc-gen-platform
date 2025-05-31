@@ -192,14 +192,13 @@ exports.getTemplateById = async (req, res) => {
 // Create template (Admin only)
 exports.createTemplate = async (req, res) => {
   try {
-    const { title, description, documentType, questionSchema } = req.body;
+    const { title, description } = req.body;
+    console.log(req.user)
 
     // Create new template
     const template = new Template({
       title,
       description,
-      documentType,
-      questionSchema,
       createdBy: req.user.id,
     });
 

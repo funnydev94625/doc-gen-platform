@@ -9,11 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, FileText, Layers } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import axios from "axios"
-// import PolicyEditor from "@/components/ui/policyeditor"
-// import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css'
+import axios, { AxiosInstance } from "axios"
 
 const categories = [
   "General",
@@ -28,6 +26,14 @@ const categories = [
   "Business Continuity"
 ]
 
+const api: AxiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
 export default function AddPolicyPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -35,7 +41,7 @@ export default function AddPolicyPage() {
   const [success, setSuccess] = useState(false)
 
   const [policyData, setPolicyData] = useState({
-    name: "",
+    title: "",
     category: "",
     description: "",
     content: "",
@@ -50,13 +56,6 @@ export default function AddPolicyPage() {
     })
   }
 
-  const handleContentChange = (value: string) => {
-    setPolicyData({
-      ...policyData,
-      content: value
-    })
-  }
-
   const handleSelectChange = (name: string, value: string) => {
     setPolicyData({
       ...policyData,
@@ -65,7 +64,7 @@ export default function AddPolicyPage() {
   }
 
   const validateForm = () => {
-    if (!policyData.name.trim()) {
+    if (!policyData.title.trim()) {
       setError("Policy name is required")
       return false
     }
@@ -87,17 +86,15 @@ export default function AddPolicyPage() {
     setIsSubmitting(true)
 
     try {
-      // Get token from localStorage
       const token = localStorage.getItem("token")
-
       if (!token) {
         setError("You must be logged in to add a policy")
         setIsSubmitting(false)
         return
       }
 
-      await axios.post(
-        "/api/policies",
+      const response = await api.post(
+        "/api/admin/template",
         policyData,
         {
           headers: {
@@ -108,14 +105,11 @@ export default function AddPolicyPage() {
       )
 
       setSuccess(true)
-
-      // Redirect after a short delay to show success message
       setTimeout(() => {
-        router.push("/policies")
+        router.push(`/policies/edit/${response.data._id}`)
       }, 1500)
 
     } catch (error: any) {
-      console.error("Error adding policy:", error)
       setError(
         error.response?.data?.msg ||
         "Failed to add policy. Please try again."
@@ -126,111 +120,111 @@ export default function AddPolicyPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 py-8 px-2">
+      <div className="w-full max-w-2xl">
+        <div className="flex items-center gap-4 mb-8">
           <Link href="/policies">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Policies
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Policy</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-blue-800 flex items-center gap-2">
+            <Layers className="h-7 w-7 text-blue-500" />
+            Add New Policy
+          </h1>
         </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="bg-green-50 text-green-800 border-green-200 mb-4">
+            <AlertDescription>Policy added successfully! Redirecting...</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <Card className="shadow-xl border-0 rounded-2xl">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-t-2xl pb-6">
+              <CardTitle className="text-white flex items-center gap-2">
+                <FileText className="h-6 w-6" />
+                Policy Details
+              </CardTitle>
+              <CardDescription className="text-blue-100">
+                Create a new policy for your organization
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="font-semibold text-blue-700">Policy Name</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  placeholder="e.g., Acceptable Use Policy"
+                  value={policyData.title}
+                  onChange={handleChange}
+                  required
+                  className="rounded-lg border-blue-200 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="font-semibold text-blue-700">Category</Label>
+                <Select
+                  value={policyData.category}
+                  onValueChange={(value) => handleSelectChange("category", value)}
+                >
+                  <SelectTrigger className="rounded-lg border-blue-200 focus:ring-2 focus:ring-blue-400">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="font-semibold text-blue-700">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Brief description of the policy"
+                  value={policyData.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className="rounded-lg border-blue-200 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between bg-blue-50 rounded-b-2xl pt-6">
+              <Button
+                variant="outline"
+                type="button"
+                className="rounded-lg"
+                onClick={() => router.push("/policies")}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold hover:from-blue-700 hover:to-blue-600 transition shadow"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isSubmitting ? "Saving..." : "Save Policy"}
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {success && (
-        <Alert className="bg-green-50 text-green-800 border-green-200">
-          <AlertDescription>Policy added successfully! Redirecting...</AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Policy Details</CardTitle>
-            <CardDescription>
-              Create a new policy for your organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Policy Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="e.g., Acceptable Use Policy"
-                value={policyData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={policyData.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Brief description of the policy"
-                value={policyData.description}
-                onChange={handleChange}
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={policyData.status}
-                onValueChange={(value) => handleSelectChange("status", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Published">Published</SelectItem>
-                  <SelectItem value="Archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => router.push("/policies")}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Saving..." : "Save Policy"}
-            </Button>
-          </CardFooter>
-        </Card>
-      </form>
     </div>
   )
 }

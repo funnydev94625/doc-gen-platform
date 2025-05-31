@@ -24,7 +24,7 @@ export default function AdminHeader() {
       <div className="container flex h-16 items-center justify-between" style={{maxWidth: 10000}}>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input type="search" placeholder="Search..." className="pl-8" />
           </div>
         </div>

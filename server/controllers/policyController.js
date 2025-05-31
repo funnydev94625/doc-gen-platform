@@ -34,7 +34,7 @@ exports.getPolicyById = async (req, res) => {
 exports.createPolicy = async (req, res) => {
   try {
     const { name, category, description, content, status } = req.body;
-
+    console.log(req.user)
     // Create new policy
     const policy = new Policy({
       name,

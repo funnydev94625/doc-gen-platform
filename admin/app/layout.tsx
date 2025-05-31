@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation"
 import { Inter } from "next/font/google"
 import './globals.css'
 import AdminLayout from "@/components/admin/layout"
+import "bootstrap/dist/css/bootstrap.css";
+import "react-summernote/dist/react-summernote.css";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,6 +25,7 @@ const inter = Inter({ subsets: ["latin"] })
 export default function Layout({ children }: { children: ReactNode }) {
 
   const pathname = usePathname()
+  const hideBar = pathname.startsWith('/auth') || pathname.startsWith('/policies/')
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -35,7 +38,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <AuthProvider>
             {
-              pathname.startsWith('/auth') ? <>{children}</> :
+              hideBar ? <>{children}</> :
                 <AdminLayout>
                   {children}
                 </AdminLayout>

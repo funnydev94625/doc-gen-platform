@@ -274,6 +274,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@pdftron/webviewer@^11.4.0":
+  version "11.4.0"
+  resolved "https://registry.yarnpkg.com/@pdftron/webviewer/-/webviewer-11.4.0.tgz#2be74ea649af7e13b1e7e2f832debd838c9937ce"
+  integrity sha512-5rdsNckp1hk53jcIIFsRExKa+txk/WvcVYW0pWSyLtQG7ZbBdUg2M71JvOM++8fcM7/onpRH7B/+Z1neABW/Tg==
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
@@ -1185,6 +1190,11 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.3.0.tgz#f6e14a97858d327252200242d4ccfe522c445522"
   integrity sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==
 
+bootstrap@4:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.6.2.tgz#8e0cd61611728a5bf65a3a2b8d6ff6c77d5d7479"
+  integrity sha512-51Bbp/Uxr9aTuy6ca/8FbFloBUJZLHwnhTcnjIeRn2suQWsWzcuJhGjKDB5eppVte/8oCdOL3VuwxvZDUggwGQ==
+
 brace-expansion@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-2.0.1.tgz#1edc459e0f0c548486ecf9fc99f2221364b9a0ae"
@@ -1280,6 +1290,11 @@ cmdk@1.0.4:
     "@radix-ui/react-id" "^1.1.0"
     "@radix-ui/react-primitive" "^2.0.0"
     use-sync-external-store "^1.2.2"
+
+codemirror@^5.26.0:
+  version "5.65.19"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.65.19.tgz#71016c701d6a4b6e1982b0f6e7186be65e49653d"
+  integrity sha512-+aFkvqhaAVr1gferNMuN8vkTSrWIFvzlMV9I2KBLCWS2WpZ2+UAkZjlMZmEuT+gcXTi6RrGQCkWq1/bDtGqhIA==
 
 color-convert@^2.0.1:
   version "2.0.1"
@@ -1815,6 +1830,11 @@ jiti@^1.21.6:
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.7.tgz#9dd81043424a3d28458b193d965f0d18a2300ba9"
   integrity sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==
 
+jquery@^3.7.1:
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.7.1.tgz#083ef98927c9a6a74d05a6af02806566d16274de"
+  integrity sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==
+
 "js-tokens@^3.0.0 || ^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -2087,7 +2107,7 @@ promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@^15.5.10, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -2184,6 +2204,15 @@ react-style-singleton@^2.2.2, react-style-singleton@^2.2.3:
   dependencies:
     get-nonce "^1.0.0"
     tslib "^2.0.0"
+
+react-summernote@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/react-summernote/-/react-summernote-2.0.2.tgz#7be8ff8f38c286ffb0d6d99a1ef5360b027d30a8"
+  integrity sha512-wVceqtDtz7PaPN7Agh2I22TZY+H0FZpjZuNDQB+Rpx0zSZeeYIBcltI6//XY6vDmOy4AOHpltEBFbYHMyo+Ibw==
+  dependencies:
+    codemirror "^5.26.0"
+    prop-types "^15.5.10"
+    summernote "^0.8.15"
 
 react-transition-group@^4.4.5:
   version "4.4.5"
@@ -2406,6 +2435,24 @@ sucrase@^3.35.0:
     mz "^2.7.0"
     pirates "^4.0.1"
     ts-interface-checker "^0.1.9"
+
+summernote@^0.8.15:
+  version "0.8.20"
+  resolved "https://registry.yarnpkg.com/summernote/-/summernote-0.8.20.tgz#395905f2cec0aceebc712edc019d91b8ef88f7cf"
+  integrity sha512-W9RhjQjsn+b1s9xiJQgJbCiYGJaDAc9CdEqXo+D13WuStG8lCdtKaO5AiNiSSMJsQJN2EfGSwbBQt+SFE2B8Kw==
+
+suneditor-react@2.16:
+  version "2.16.5"
+  resolved "https://registry.yarnpkg.com/suneditor-react/-/suneditor-react-2.16.5.tgz#85af8ca095fa29b8b242b75d0042bd0ed80d2679"
+  integrity sha512-zBUMX7h2LwQyRvG0jxM4Q7Zl4aiAyAHch2sOxbIIBLmOsP9CrZ7LpDfS9vNUzMeO7LR4rFCI7h2yP6xrVFdY4A==
+  dependencies:
+    prop-types "^15.7.2"
+    suneditor "^2.38.8"
+
+suneditor@^2.38.8, suneditor@^2.47.5:
+  version "2.47.5"
+  resolved "https://registry.yarnpkg.com/suneditor/-/suneditor-2.47.5.tgz#b425589902b0477610a3c28e4c3c9898ccc290f6"
+  integrity sha512-zcPOUS7hTomhnL7YMTlEGhFDxot9OwScL8FV6+rWyqQLAVMMZAF+klQq6aDbxoiidcWl5gtIyZUe19lBbj9ViQ==
 
 supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"

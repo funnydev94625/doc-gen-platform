@@ -4,26 +4,31 @@ const Schema = mongoose.Schema;
 const TemplateSchema = new Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   description: {
     type: String,
     required: true
   },
-  documentType: {
-    type: String,
-    // required: true
+  type: {
+    type: Number,
+    default: 0,
+    required: true
   },
-  questionSchema: {
-    type: Object,
-    // required: true
-  },
-  // createdBy: {
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'User',
-  //   required: true
-  // },
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
+    required: true
+  },
+  docx: {
+    type: String,
+  },
+  updatedAt: {
     type: Date,
     default: Date.now
   }

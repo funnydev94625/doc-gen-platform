@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [lastActivity, setLastActivity] = useState<number>(Date.now())
   const router = useRouter()
   const pathname = usePathname()
-  const [navshow, setNavshow] = useState(false)
+  const [navshow, setNavshow] = useState(true)
 
   // Check if user is logged in on initial load
   useEffect(() => {

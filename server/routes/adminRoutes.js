@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
-
+const policyRoutes = require('./policyRoutes');
 // @route   GET api/admin/users
 // @desc    Get all users
 // @access  Private (Admin only)
@@ -18,5 +18,16 @@ router.get('/analytics', [auth, admin], adminController.getAnalytics);
 // @desc    Update platform-level settings
 // @access  Private (Admin only)
 router.post('/settings', [auth, admin], adminController.updateSettings);
+
+
+router.post('/template', [auth, admin], adminController.createTemplate);
+
+router.post('/template/element',  adminController.createElement);
+
+router.get('/template/:id', adminController.getTemplate);
+
+router.get('/template', adminController.getAllTemplates);
+
+router.use('/policies', policyRoutes);
 
 module.exports = router; 
