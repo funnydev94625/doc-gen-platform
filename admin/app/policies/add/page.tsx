@@ -68,10 +68,6 @@ export default function AddPolicyPage() {
       setError("Policy name is required")
       return false
     }
-    if (!policyData.category) {
-      setError("Category is required")
-      return false
-    }
     return true
   }
 
@@ -170,25 +166,6 @@ export default function AddPolicyPage() {
                   required
                   className="rounded-lg border-blue-200 focus:ring-2 focus:ring-blue-400"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category" className="font-semibold text-blue-700">Category</Label>
-                <Select
-                  value={policyData.category}
-                  onValueChange={(value) => handleSelectChange("category", value)}
-                >
-                  <SelectTrigger className="rounded-lg border-blue-200 focus:ring-2 focus:ring-blue-400">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">
