@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { LoadingPage } from "@/components/ui/loading-page"
+import api from "@/lib/api"
 
 // Utility function to check if a JWT token is expired
 // This is a simple implementation and doesn't validate the token's signature
@@ -27,63 +27,6 @@ const isTokenExpired = (token: string): boolean => {
     return true // If we can't verify, assume it's expired for security
   }
 }
-
-// Create a typed API instance
-const api: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000, // 10 seconds timeout
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
-
-// Add auth token to all requests if available
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token')
-      if (token) {
-        // Check if token is expired
-        if (isTokenExpired(token)) {
-          // Token is expired, but we'll still send the request
-          // The response interceptor will handle the 401 error
-          console.warn("Token is expired, request may fail")
-        }
-        config.headers['x-auth-token'] = token
-      }
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-// Add response interceptor to handle authentication errors
-api.interceptors.response.use(
-  (response) => {
-    return response
-  },
-  async (error) => {
-    const originalRequest = error.config
-
-    // If the error is due to an expired token (401) and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      // Clear the token and user data
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-
-      // Redirect to login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/signin')) {
-        window.location.href = '/auth/signin'
-      }
-    }
-
-    return Promise.reject(error)
-  }
-)
 
 // Define types for better type safety
 export type User = {
@@ -127,7 +70,7 @@ const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchs
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true) // Start with loading true
+  const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
   const [lastActivity, setLastActivity] = useState<number>(Date.now())
   const router = useRouter()

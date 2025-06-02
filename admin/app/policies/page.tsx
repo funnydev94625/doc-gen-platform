@@ -145,7 +145,7 @@ export default function PoliciesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Policy</DropdownMenuItem>
+                          <DropdownMenuItem>Preview Policy</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => router.push(`/policies/edit/${policy._id}`)}>Edit Policy</DropdownMenuItem>
                           <DropdownMenuItem>Duplicate</DropdownMenuItem>
                           <DropdownMenuSeparator />

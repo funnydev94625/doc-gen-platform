@@ -16,10 +16,15 @@ const ElementSchema = new mongoose.Schema({
   },
   placeholder: {
     type:String,
-    required: true
+    // required: true
   },
   answer_result: {
     type: Object
+  },
+  section_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Section",
+    // required: true
   },
   isDel: {
     type: Boolean,

@@ -17,8 +17,9 @@ type WordEditorProps = {
 const regexStrict = /^\{\{.*\}\}$/;
 const WordEditor = forwardRef<WordEditorRef, WordEditorProps>(({ setSelected, fileRef, fileUrl }, ref) => {
   const viewer: Ref<HTMLDivElement | any> = useRef(null);
-  const initialized = useRef(false); // <-- Add this flag
+  const initialized = useRef(false);
   const instanceRef = useRef<any>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -29,24 +30,30 @@ const WordEditor = forwardRef<WordEditorRef, WordEditorProps>(({ setSelected, fi
       WebViewer(
         {
           path: '/lib/webviewer',
-          licenseKey: 'demo:1748336846193:61fad2730300000000825649634c3e0ab95bf311b9b73e3eafbfaa95c3',
+          licenseKey: 'demo:1748863910275:61f2e71b03000000004491aacff136979b9fe9117f5b47c5e90c1ce10f',
           enableOfficeEditing: true
         },
         viewer.current,
       ).then((instance: WebViewerInstance) => {
         instanceRef.current = instance;
+        setIsReady(true);
 
         if (instance?.Core?.documentViewer) {
           const { documentViewer, annotationManager, Annotations } = instance.Core;
 
           documentViewer.addEventListener('textSelected', (quads, selectedText, pageNumber) => {
-            if (selectedText.length > 0 && regexStrict.test(selectedText.trim())) {
+            if (selectedText?.length > 0 && regexStrict.test(selectedText.trim())) {
               setSelected(selectedText.trim())
             }
           });
 
           documentViewer.addEventListener("mouseLeftDown", () => {
             setSelected("")
+          });
+
+          // Add error handling for document loading
+          documentViewer.addEventListener('documentError', (error) => {
+            console.error('Document loading error:', error);
           });
         }
 
@@ -58,32 +65,27 @@ const WordEditor = forwardRef<WordEditorRef, WordEditorProps>(({ setSelected, fi
               instance.UI.loadDocument(file, {
                 filename: file.name,
                 enableOfficeEditing: true
-              });
+              })
             }
           });
         }
-      });
-    });
+      })
+    })
   }, []);
 
   useEffect(() => {
-    console.log(fileUrl)
-    if (!fileUrl || !instanceRef.current?.UI) return;
+    if (!fileUrl || !instanceRef.current?.UI || !isReady) return;
+    
     instanceRef.current.UI.loadDocument(process.env.NEXT_PUBLIC_API_URL + '/api/templates/policy/' + fileUrl, {
       filename: fileUrl.split('/').pop(),
       enableOfficeEditing: true
-    });
-  }, [fileUrl]);
+    })
+  }, [fileUrl, isReady]);
 
-  // Store the latest file name (if you want to use the real name)
-
-  // If you use a file dialog, setFileName(file.name) when you setFileUrl(url)
-  // Example in parent: setFileUrl(url); setFileName(file.name);
-
-  // Stable handler
   const handleOfficeEditor = useCallback(() => {
-    const docType = instanceRef.current?.Core?.documentViewer?.getDocument()?.getType?.();
-    // Only open Office Editor if the document is Office type
+    if (!instanceRef.current?.Core?.documentViewer) return;
+    
+    const docType = instanceRef.current.Core.documentViewer.getDocument()?.getType?.();
     if (
       instanceRef.current?.UI?.openOfficeEditor &&
       (docType === 'docx' || docType === 'office')
@@ -95,14 +97,9 @@ const WordEditor = forwardRef<WordEditorRef, WordEditorProps>(({ setSelected, fi
     }
   }, []);
 
-  // useEffect(() => {
-  //   instance
-  // }, [file, fileName, handleOfficeEditor]);
-
-  // Expose getEditedDocx method to parent
   useImperativeHandle(ref, () => ({
     async getEditedDocx() {
-      if (!instanceRef.current) return null;
+      if (!instanceRef.current?.Core?.documentViewer) return null;
       const { documentViewer } = instanceRef.current.Core;
       const doc = await documentViewer.getDocument().getFileData({ fileType: 'docx' });
       return new Blob([doc], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });

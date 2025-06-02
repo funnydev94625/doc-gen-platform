@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import axios, { AxiosInstance } from "axios";
 import WordEditor from "@/components/WordEditor";
+import api from "@/lib/api";
 
 type AnswerSet = { answer: string; result: string };
 type Element = {
@@ -20,14 +21,6 @@ type Template = {
   type: number;
   docx: string;
 }
-
-const api: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
 
 const regexStrict = /\{\{[^}]+\}\}/;
 
@@ -46,6 +39,7 @@ export default function PolicySectionEditorPage() {
   const [fileName, setFileName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null!)
   const [template, setTemplate] = useState<Template | null>(null)
+  const [fileChange, setFileChange] = useState(false)
 
   const elementShow = regexStrict.test(selected);
 
@@ -113,6 +107,10 @@ export default function PolicySectionEditorPage() {
   };
 
   const handlePolicySave = async () => {
+    if (!fileChange) {
+      window.location.href = "/policies/elements/" + idString
+      return;
+    }
     if (!wordEditorRef.current) return;
     const docxBlob = await wordEditorRef.current.getEditedDocx();
     if (!docxBlob) {
@@ -128,7 +126,7 @@ export default function PolicySectionEditorPage() {
       await api.post("/api/admin/policies/upload-docx", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      alert("Policy document uploaded successfully!");
+      window.location.href = "/policies/elements/" + idString
     } catch (err) {
       alert("Failed to upload policy document.");
     }
@@ -154,7 +152,7 @@ export default function PolicySectionEditorPage() {
     <div className="flex flex-col md:flex-row max-h-screen bg-gray-50">
       {/* Left: Editor */}
       <div className="md:w-2/3 w-full border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-8 flex flex-col min-h-screen">
-        <div className="flex items-center mb-4">
+        <div className="flex items-center justify-between mb-4">
           <button
             className="text-blue-700 hover:underline font-medium"
             onClick={() => window.location.href = "/policies"}
@@ -162,33 +160,23 @@ export default function PolicySectionEditorPage() {
           >
             &#8592; Back to Policy List
           </button>
-          <div className="ml-auto flex gap-4">
+          <div className="flex items-center gap-4">
             <button className="px-4 py-2 rounded font-semibold cursor-pointer transition bg-gray-200 text-gray-800 hover:bg-gray-300" onClick={() => fileRef.current?.click()}>
               Open Word File
               <input
                 id='opendocx'
                 type="file"
                 accept=".docx"
-                ref = {fileRef}
-                // onChange={e => {
-                //   const file = e.target.files?.[0];
-                //   if (file) {
-                //     const url = URL.createObjectURL(file);
-                //     setFileUrl(file);
-                //     setFileName(file.name);
-                //   }
-                //   // Reset input value so the same file can be selected again if needed
-                //   e.target.value = "";
-                // }}
+                ref={fileRef}
                 style={{ display: "none" }}
               />
             </button>
             <button
-              className="px-4 rounded font-semibold transition bg-blue-600 text-white hover:bg-blue-700"
+              className="px-4 py-2 rounded font-semibold transition bg-blue-600 text-white hover:bg-blue-700"
               onClick={handlePolicySave}
               type="button"
             >
-              Policy Save
+              Next Step →
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Template = require("../models/Template");
 const UserResponse = require("../models/UserResponse");
 const Element = require("../models/Element");
+const Section = require("../models/Section");
 
 // Get all users (Admin only)
 exports.getAllUsers = async (req, res) => {
@@ -126,6 +127,35 @@ exports.createElement = async (req, res) => {
   }
 };
 
+exports.updateElements = async (req, res) => {
+  try {
+    const { elements } = req.body;
+    
+    // Update each element
+    const updatePromises = elements.map(async (element) => {
+      const { _id, section_id, question, placeholder, type, answer_result } = element;
+      
+      return await Element.findByIdAndUpdate(
+        _id,
+        {
+          section_id,
+          question,
+          placeholder,
+          type,
+          answer_result
+        },
+        { new: true }
+      );
+    });
+
+    const updatedElements = await Promise.all(updatePromises);
+    res.json(updatedElements);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
 exports.getTemplate = async (req, res) => {
   const { id } = req.params;
   console.log(id);
@@ -164,3 +194,58 @@ exports.getAllTemplates = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
+exports.getTemplateElement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const element = await Element.find({ template_id: id });
+    res.json(element);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.createSection = async (req, res) => {
+  try {
+    const { title, template_id } = req.body;
+    const section = new Section({ title, template_id });
+    await section.save();
+    res.json(section);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.getAllSections = async (req, res) => {
+  try {
+    const sections = await Section.find({ template_id: req.params.id });
+    res.json(sections);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  } 
+}
+
+exports.updateSection = async (req, res) => {
+  try {
+    const { id, title } = req.body;
+    const section = await Section.findByIdAndUpdate(id, { title }, { new: true });
+    res.json(section);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+}
+
+exports.deleteSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const section = await Section.findByIdAndUpdate(id, { isDel: true }, { new: true });
+    res.json(section);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+}

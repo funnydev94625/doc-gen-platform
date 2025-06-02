@@ -22,12 +22,25 @@ router.post('/settings', [auth, admin], adminController.updateSettings);
 
 router.post('/template', [auth, admin], adminController.createTemplate);
 
-router.post('/template/element',  adminController.createElement);
+router.post('/template/element', [auth, admin], adminController.createElement);
+
+router.put('/template/element', [auth, admin], adminController.updateElements);
+
+router.get('/template/element/:id', adminController.getTemplateElement);
 
 router.get('/template/:id', adminController.getTemplate);
 
 router.get('/template', adminController.getAllTemplates);
 
 router.use('/policies', policyRoutes);
+
+router.post('/section', [auth, admin], adminController.createSection);
+
+router.get('/section/:id', adminController.getAllSections);
+
+router.put('/section/:id', [auth, admin], adminController.updateSection);
+
+router.delete('/section/:id', [auth, admin], adminController.deleteSection);
+
 
 module.exports = router; 
