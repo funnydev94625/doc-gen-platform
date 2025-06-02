@@ -18,6 +18,7 @@ import Link from "next/link"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import PolicyPreviewModal from "@/components/ui/PolicyPreviewModal"
 
 // Add this type above your component
 type Policy = {
@@ -39,6 +40,7 @@ const api = axios.create({
 
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState<Policy[]>([])
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -50,6 +52,11 @@ export default function PoliciesPage() {
         console.log(err)
       })
   }, [])
+
+  const handlePreviewPolicy = (policyId: string) => {
+    setSelectedPolicyId(policyId)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -145,8 +152,12 @@ export default function PoliciesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Preview Policy</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => router.push(`/policies/edit/${policy._id}`)}>Edit Policy</DropdownMenuItem>
+                          {/* <DropdownMenuItem onClick={() => handlePreviewPolicy(policy._id)}>
+                            Preview Policy
+                          </DropdownMenuItem> */}
+                          <DropdownMenuItem onClick={() => router.push(`/policies/edit/${policy._id}`)}>
+                            Edit Policy
+                          </DropdownMenuItem>
                           <DropdownMenuItem>Duplicate</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">Archive Policy</DropdownMenuItem>
@@ -173,6 +184,13 @@ export default function PoliciesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedPolicyId && (
+        <PolicyPreviewModal
+          fileName={selectedPolicyId}
+          onClose={() => setSelectedPolicyId(null)}
+        />
+      )}
     </div>
   )
 }

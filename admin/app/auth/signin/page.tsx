@@ -193,9 +193,6 @@ export default function SignInPage() {
                   Email address
                 </Label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
                   <Input
                     id="email"
                     name="email"
@@ -240,9 +237,6 @@ export default function SignInPage() {
                   </Link>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
                   <Input
                     id="password"
                     name="password"
