@@ -66,6 +66,17 @@ router.post("/upload-docx", upload.single("file"), async (req, res) => {
       return res.status(404).json({ msg: "Template not found" });
     }
 
+    // Delete previous file if it exists
+    if (template.docx && template.docx.length > 0) {
+      const prevFilePath = path.join(__dirname, "../uploads/policies", template.docx);
+      try {
+        fs.unlinkSync(prevFilePath);
+      } catch (err) {
+        console.error('Error deleting previous file:', err);
+        // Continue with the upload even if deletion fails
+      }
+    }
+
     // Update template with new docx filename
     template.docx = req.file.filename;
     await template.save();

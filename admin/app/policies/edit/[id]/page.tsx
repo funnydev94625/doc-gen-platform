@@ -107,10 +107,6 @@ export default function PolicySectionEditorPage() {
   };
 
   const handlePolicySave = async () => {
-    if (!fileChange) {
-      window.location.href = "/policies/elements/" + idString
-      return;
-    }
     if (!wordEditorRef.current) return;
     const docxBlob = await wordEditorRef.current.getEditedDocx();
     if (!docxBlob) {
