@@ -100,8 +100,8 @@ export default function PolicyElementsPage() {
         });
         
         // Update the previous elements state with the response
-        setPrevElements(response.data);
-        setElements(response.data);
+        setPrevElements(elements);
+        // setElements(response.data);
       }
       
       console.log('Changes saved successfully');
