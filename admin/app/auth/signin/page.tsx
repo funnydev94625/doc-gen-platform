@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { ErrorDisplay } from "@/components/ui/error-display"
 
 import {
   Lock,
@@ -33,8 +34,6 @@ export default function SignInPage() {
     email: false,
     password: false
   })
-  const [emailError, setEmailError] = useState("")
-  const [passwordError, setPasswordError] = useState("")
   const [formSubmitted, setFormSubmitted] = useState(false)
 
   // Animation state
@@ -98,9 +97,6 @@ export default function SignInPage() {
         password: true
       })
       isValid = false
-      // } else if (password.length < 6) {
-      //   setPasswordError("Password must be at least 6 characters")
-      //   isValid = false
     }
 
     return isValid
@@ -124,14 +120,13 @@ export default function SignInPage() {
 
     try {
       await login(email, password)
-      // If remember me is checked, we could set a longer expiration for the token
-      // This would be handled in the AuthContext
     } catch (err: any) {
       console.log(err)
-      setError(
-        {
-          msg: typeof (err.message) == "string" ? err.message : "Failed to sign in", email: false, password: false
-        })
+      setError({
+        msg: typeof (err.message) === "string" ? err.message : "Failed to sign in",
+        email: false,
+        password: false
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -176,11 +171,12 @@ export default function SignInPage() {
             </h2>
 
             {/* Error Message */}
-            {error.msg && (
-              <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-500">
-                {error.msg}
-              </div>
-            )}
+            <ErrorDisplay 
+              message={error.msg}
+              type="error"
+              className="mb-4"
+              onDismiss={() => setError({ msg: "", email: false, password: false })}
+            />
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -190,6 +186,7 @@ export default function SignInPage() {
                   htmlFor="email"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center"
                 >
+                  <Mail className="h-4 w-4 mr-2" />
                   Email address
                 </Label>
                 <div className="relative">
@@ -212,11 +209,6 @@ export default function SignInPage() {
                     aria-invalid={!!error.email}
                     aria-describedby={error.email ? "email-error" : undefined}
                   />
-                  {/* {emailError && (
-                    <p id="email-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {emailError}
-                    </p>
-                  )} */}
                 </div>
               </div>
 
@@ -225,8 +217,9 @@ export default function SignInPage() {
                 <div className="flex items-center justify-between">
                   <Label
                     htmlFor="password"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center"
                   >
+                    <Lock className="h-4 w-4 mr-2" />
                     Password
                   </Label>
                   <Link
@@ -248,9 +241,9 @@ export default function SignInPage() {
                       if (formSubmitted) validateForm();
                     }}
                     className={cn(
-                      "pl-10 pr-10 bg-white dark:bg-gray-800 transition-all duration-200",
+                      "pl-10 bg-white dark:bg-gray-800 transition-all duration-200",
                       "focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400",
-                      passwordError && "border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-500"
+                      error.password && "border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-500"
                     )}
                     placeholder="••••••••"
                     aria-invalid={!!error.password}
@@ -259,85 +252,42 @@ export default function SignInPage() {
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5" aria-hidden="true" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-5 w-5" aria-hidden="true" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
-                  {/* {passwordError && (
-                    <p id="password-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {passwordError}
-                    </p>
-                  )} */}
                 </div>
               </div>
 
-              {/* Remember Me Checkbox */}
-              <div className="flex items-center">
+              {/* Remember Me */}
+              <div className="flex items-center space-x-2">
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  className="text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
                 <Label
                   htmlFor="remember"
-                  className="ml-2 text-sm text-gray-600 dark:text-gray-400"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Remember me for 30 days
+                  Remember me
                 </Label>
               </div>
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                className={cn(
-                  "w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200",
-                  "focus:ring-4 focus:ring-blue-500/50 dark:focus:ring-blue-500/70",
-                  "transform hover:translate-y-[-1px] active:translate-y-[1px]",
-                  "shadow-md hover:shadow-lg"
-                )}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
-                size="lg"
               >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <span>Sign in to dashboard</span>
-                )}
+                {isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
-
-            {/* Footer */}
-            <div className="mt-8 text-center">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                By signing in, you agree to our{' '}
-                <Link href="#" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 underline-offset-2 hover:underline">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="#" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 underline-offset-2 hover:underline">
-                  Privacy Policy
-                </Link>
-              </p>
-            </div>
-          </div>
-
-          {/* Copyright */}
-          <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              © {new Date().getFullYear()} October Security. All rights reserved.
-            </p>
           </div>
         </div>
       </div>

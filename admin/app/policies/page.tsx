@@ -15,28 +15,17 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, MoreHorizontal, Plus, Search, Filter } from "lucide-react"
 import Link from "next/link"
-import axios from "axios"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import PolicyPreviewModal from "@/components/ui/PolicyPreviewModal"
+import api from "@/lib/api"
 
-// Add this type above your component
 type Policy = {
   _id: string;
   title: string;
   status: number;
   updatedAt: string;
   createdBy: { isAdmin: boolean; name: string };
-  // Add other fields as needed
 };
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
 
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState<Policy[]>([])
@@ -44,18 +33,65 @@ export default function PoliciesPage() {
   const router = useRouter()
 
   useEffect(() => {
-    api.get('/api/admin/template')
-      .then(res => {
-        setPolicies(res.data)
-      })
-      .catch(err => {
-        console.log(err)
-      })
+    const fetchPolicies = async () => {
+      try {
+        const response = await api.get('/api/admin/template')
+        setPolicies(response.data)
+      } catch (error) {
+        console.error('Error fetching policies:', error)
+      }
+    }
+    fetchPolicies()
   }, [])
 
-  const handlePreviewPolicy = (policyId: string) => {
-    setSelectedPolicyId(policyId)
-  }
+  const getStatusBadge = (status: number) => (
+    <Badge
+      variant="outline"
+      className={
+        status === 1
+          ? "border-green-500 text-green-500"
+          : status === 0
+            ? "border-yellow-500 text-yellow-500"
+            : "border-blue-500 text-blue-500"
+      }
+    >
+      {status === 1 ? 'published' : 'draft'}
+    </Badge>
+  )
+
+  const renderPolicyRow = (policy: Policy) => (
+    <TableRow key={policy._id}>
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-blue-100 p-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="font-medium">{policy.title}</div>
+        </div>
+      </TableCell>
+      <TableCell>{getStatusBadge(policy.status)}</TableCell>
+      <TableCell>{policy.updatedAt}</TableCell>
+      <TableCell>{policy.createdBy.isAdmin ? 'Admin' : policy.createdBy.name}</TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => router.push(`/policies/edit/${policy._id}`)}>
+              Edit Policy
+            </DropdownMenuItem>
+            <DropdownMenuItem>Duplicate</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">Archive Policy</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  )
 
   return (
     <div className="space-y-6">
@@ -117,61 +153,13 @@ export default function PoliciesPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                policies.map((policy) => (
-                  <TableRow key={policy._id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-full bg-blue-100 p-2">
-                          <FileText className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="font-medium">{policy.title}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          policy.status == 1
-                            ? "border-green-500 text-green-500"
-                            : policy.status == 0
-                              ? "border-yellow-500 text-yellow-500"
-                              : "border-blue-500 text-blue-500"
-                        }
-                      >
-                        {policy.status == 1 ? 'published' : 'draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{policy.updatedAt}</TableCell>
-                    <TableCell>{policy.createdBy.isAdmin ? 'Admin' : policy.createdBy.name}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {/* <DropdownMenuItem onClick={() => handlePreviewPolicy(policy._id)}>
-                            Preview Policy
-                          </DropdownMenuItem> */}
-                          <DropdownMenuItem onClick={() => router.push(`/policies/edit/${policy._id}`)}>
-                            Edit Policy
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">Archive Policy</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                policies.map(renderPolicyRow)
               )}
             </TableBody>
           </Table>
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              Showing <strong>1-10</strong> of <strong>12</strong> policies
+              Showing <strong>1-{policies.length}</strong> of <strong>{policies.length}</strong> policies
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" disabled>
@@ -184,13 +172,6 @@ export default function PoliciesPage() {
           </div>
         </CardContent>
       </Card>
-
-      {selectedPolicyId && (
-        <PolicyPreviewModal
-          fileName={selectedPolicyId}
-          onClose={() => setSelectedPolicyId(null)}
-        />
-      )}
     </div>
   )
 }

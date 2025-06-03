@@ -5,6 +5,41 @@ const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const { validationResult } = require("express-validator");
 
+const sendEmail = async (email) => {
+  const transporter = nodemailer.createTransport({
+    // Use your SMTP config here
+    service: 'gmail',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+  await transporter.sendMail({
+    to: email,
+    subject: "Verify your email",
+    html: `
+      <div style="font-family: Arial, sans-serif; background: #f6f9fc; padding: 32px;">
+        <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px;">
+          <h2 style="color: #2563eb; margin-bottom: 16px;">Verify your email address</h2>
+          <p style="color: #333; font-size: 16px; margin-bottom: 24px;">
+            Thank you for signing up! Please verify your email address to activate your account.
+          </p>
+          <a href="${verifyUrl}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
+            Verify Email
+          </a>
+          <p style="color: #888; font-size: 13px; margin-top: 32px;">
+            If you did not create an account, you can safely ignore this email.<br>
+            This link will expire after a short time for your security.
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 // Register User
 exports.register = async (req, res) => {
   try {
@@ -36,38 +71,7 @@ exports.register = async (req, res) => {
     await user.save();
 
     // Send verification email
-    const transporter = nodemailer.createTransport({
-      // Use your SMTP config here
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
-    await transporter.sendMail({
-      to: user.email,
-      subject: "Verify your email",
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #f6f9fc; padding: 32px;">
-          <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px;">
-            <h2 style="color: #2563eb; margin-bottom: 16px;">Verify your email address</h2>
-            <p style="color: #333; font-size: 16px; margin-bottom: 24px;">
-              Thank you for signing up! Please verify your email address to activate your account.
-            </p>
-            <a href="${verifyUrl}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; margin-bottom: 24px;">
-              Verify Email
-            </a>
-            <p style="color: #888; font-size: 13px; margin-top: 32px;">
-              If you did not create an account, you can safely ignore this email.<br>
-              This link will expire after a short time for your security.
-            </p>
-          </div>
-        </div>
-      `,
-    });
+    sendEmail(user.email)
 
     res.json({ msg: "Registration successful. Please check your email to verify your account." });
   } catch (err) {
@@ -88,6 +92,7 @@ exports.login = async (req, res) => {
 
     // Check if email is verified
     if (!user.isVerified) {
+      sendEmail(email)
       return res.status(403).json({ msg: 'Please verify your email before logging in.' });
     }
 
