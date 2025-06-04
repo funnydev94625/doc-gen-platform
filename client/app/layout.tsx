@@ -9,6 +9,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { AuthProvider } from "@/context/AuthContext"
 import "./globals.css"
+import path from "path"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-  const showheadefooter = !pathname.startsWith('/auth') && !pathname.startsWith('/admin') && !pathname.startsWith('/verify-email')
+  const showheadefooter = !pathname.startsWith('/auth') && !pathname.startsWith('/admin') && !pathname.startsWith('/verify-email') && !pathname.startsWith('/policies/')
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

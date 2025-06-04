@@ -2,26 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const PolicySchema = new Schema({
-  name: {
-    type: String,
+  template_id: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true
-  },
-  category: {
-    type: String,
-    required: true
-  },
-  description: {
-    type: String,
-    default: ''
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['Draft', 'Published', 'Archived'],
-    default: 'Draft'
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,10 +18,6 @@ const PolicySchema = new Schema({
     type: Date,
     default: Date.now
   },
-  downloads: {
-    type: Number,
-    default: 0
-  }
 });
 
 module.exports = mongoose.model('Policy', PolicySchema);
