@@ -27,7 +27,7 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col">
             <AuthProvider>
               {showheadefooter && <Header />}
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 shadow-[0_0_15px_rgba(0,0,0,0.05)]">{children}</main>
               {showheadefooter && <Footer />}
             </AuthProvider>
           </div>

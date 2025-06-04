@@ -10,10 +10,10 @@ export default function Header() {
   const { user, logout, isAuthenticated } = useAuth()
 
   return (
-    <header className="border-b">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image
               src="/images/october-security-logo.png"
               alt="October Security"
@@ -23,16 +23,16 @@ export default function Header() {
             />
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/" className="text-sm font-medium hover:underline">
+            <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
               Homepage
             </Link>
-            <Link href="/policies" className="text-sm font-medium hover:underline">
+            <Link href="/policies" className="text-sm font-medium hover:text-primary transition-colors">
               Included Policies
             </Link>
-            <Link href="/about" className="text-sm font-medium hover:underline">
+            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
               About Us
             </Link>
-            <Link href="/contact" className="text-sm font-medium hover:underline">
+            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
               Contact Us
             </Link>
           </nav>
