@@ -264,7 +264,8 @@ export default function PolicyPage() {
                                 <p>Loading preview...</p>
                             ) : (
                                 <div className="h-full">
-                                    <PDFViewer policyId={(Array.isArray(policyId) ? policyId[0] : policyId) || ''} fileUrl={template?.docx || ""} />
+                                    {/* <PDFViewer policyId={(Array.isArray(policyId) ? policyId[0] : policyId) || ''} fileUrl={template?.docx || ""} /> */}
+                                    This will update.
                                 </div>
                             )}
                         </div>
