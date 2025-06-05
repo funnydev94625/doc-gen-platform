@@ -46,7 +46,7 @@ export default function PoliciesPage() {
 			setIsCreating(prev => ({ ...prev, [templateId]: true }))
 			const response = await api.post('/api/policy', { template_id: templateId })
 			toast.success("Successfully created Policy")
-			router.push(`/policies/mine/${response.data._id}`)
+			router.push(`/policies/edit/${response.data._id}`)
 		} catch (error) {
 			console.error('Error creating policy:', error)
 			toast.error("Failed to create policy")
