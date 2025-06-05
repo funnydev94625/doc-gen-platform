@@ -1,137 +1,157 @@
-const Policy = require('../models/Policy');
-const Template = require('../models/Template');
-const Section = require('../models/Section');
-const Element = require('../models/Element');
-const Answer = require('../models/Answer');
+const Policy = require("../models/Policy");
+const Answer = require("../models/Answer"); // Make sure this model exists
+const Section = require("../models/Section");
+const Blank = require("../models/Blank");
 
-// Get all policies
-exports.getPolicies = async (req, res) => {
-    try {
-        const policies = await Policy.find()
-            .populate('template_id', 'title description')
-            .sort({ createdAt: -1 });
-        res.status(200).json(policies);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+exports.create_policy = async (req, res) => {
+  try {
+    const { template_id } = req.body;
+    const policy = new Policy({
+      template_id,
+      user_id: req.user.id,
+    });
+    await policy.save();
+    res.json(policy);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 };
 
-// Get a single policy
-exports.getPolicy = async (req, res) => {
-    try {
-        const policy = await Policy.findById(req.params.id)
-            .populate('template_id', 'title description');
-        
-        if (!policy) {
-            return res.status(404).json({ message: 'Policy not found' });
-        }
-        
-        res.status(200).json(policy);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+exports.get_all_policies = async (req, res) => {
+  try {
+    // Populate template_id to get title and description
+    const policies = await Policy.find({ user_id: req.user.id }).populate(
+      "template_id",
+      "title description"
+    );
+    // Map to include template title and description in result
+    const result = policies.map((policy) => ({
+      ...policy.toObject(),
+      template_id: policy.template_id?._id || "",
+      template_title: policy.template_id?.title || "",
+      template_description: policy.template_id?.description || "",
+    }));
+    res.json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 };
 
-// Create a new policy
-exports.createPolicy = async (req, res) => {
-    try {
-        const { template_id } = req.body;
-
-        // Check if template exists
-        const template = await Template.findById(template_id);
-        if (!template) {
-            return res.status(404).json({ message: 'Template not found' });
-        }
-        console.log(req.user)
-        const policy = new Policy({
-            template_id,
-            createdBy: req.user.id // Assuming you have user info in req.user
-        });
-
-        const savedPolicy = await policy.save();
-        res.status(201).json(savedPolicy);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+exports.get_one_policy = async (req, res) => {
+  try {
+    const policy_id = req.params.policy_id;
+    const policy = await Policy.findById(policy_id).populate("template_id");
+    if (!policy) {
+      return res.status(404).json({ error: "Policy not found" });
     }
+
+    // Aggregate sections with blanks and answers (use "answers" collection, not "policyanswers")
+    const sections = await Section.aggregate([
+      { $match: { template_id: policy.template_id._id } },
+      {
+        $lookup: {
+          from: "blanks",
+          let: { sectionId: "$_id", templateId: "$template_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$template_id", "$$templateId"] },
+                    { $eq: ["$section_id", "$$sectionId"] },
+                  ],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "answers", // <-- use "answers" collection
+                let: { blankId: "$_id" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ["$policy_id", policy._id] },
+                          { $eq: ["$blank_id", "$$blankId"] },
+                        ],
+                      },
+                    },
+                  },
+                  { $project: { answer: 1, _id: 0 } },
+                ],
+                as: "answer",
+              },
+            },
+            {
+              $addFields: {
+                answer: { $arrayElemAt: ["$answer.answer", 0] },
+              },
+            },
+          ],
+          as: "blanks",
+        },
+      },
+    ]);
+
+    res.json({
+      ...policy.toObject(),
+      sections,
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 };
 
-// Update a policy
-exports.updatePolicy = async (req, res) => {
-    try {
-        const { title, description } = req.body;
-        const policy = await Policy.findById(req.params.id);
+exports.update_policy = async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const policy_id = req.body.policy_id || req.params.policy_id;
+    const user_id = req.user.id;
 
-        if (!policy) {
-            return res.status(404).json({ message: 'Policy not found' });
-        }
-
-        // Update fields
-        if (title) policy.title = title;
-        if (description) policy.description = description;
-
-        const updatedPolicy = await policy.save();
-        res.status(200).json(updatedPolicy);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!Array.isArray(answers)) {
+      return res.status(400).json({ error: "answers must be an array" });
     }
+
+    for (const ans of answers) {
+      const { blank_id, answer } = ans;
+      if (!blank_id) continue;
+
+      const exist = await Answer.findOne({
+        policy_id,
+        user_id,
+        blank_id,
+      });
+      if (exist) {
+        exist.answer = answer;
+        console.log(exist);
+        await exist.save();
+      } else {
+        await Answer.create({ policy_id, user_id, blank_id, answer: ans });
+      }
+    }
+
+    res.json({ message: "Answers updated successfully" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 };
 
-// Delete a policy
-exports.deletePolicy = async (req, res) => {
-    try {
-        const policy = await Policy.findById(req.params.id);
-
-        if (!policy) {
-            return res.status(404).json({ message: 'Policy not found' });
-        }
-
-        // Delete associated answers
-        await Answer.deleteMany({ policy_id: policy._id });
-
-        // Delete the policy
-        await policy.deleteOne();
-        
-        res.status(200).json({ message: 'Policy deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+exports.delete_policy = async (req, res) => {
+  try {
+    const policy_id = req.params.policy_id;
+    const policy = await Policy.findByIdAndDelete(policy_id);
+    if (!policy) {
+      return res.status(404).json({ error: "Policy not found" });
     }
-};
 
-// Get policy with all related data (template, sections, elements, answers)
-exports.getPolicyWithDetails = async (req, res) => {
-    try {
-        const policy = await Policy.findById(req.params.id)
-            .populate('template_id', 'title description');
-
-        if (!policy) {
-            return res.status(404).json({ message: 'Policy not found' });
-        }
-
-        // Get sections for the template
-        const sections = await Section.find({ 
-            template_id: policy.template_id._id,
-            isDel: false 
-        }).sort({ title: 1 });
-
-        // Get elements for the template
-        const elements = await Element.find({ 
-            template_id: policy.template_id._id,
-            isDel: false 
-        });
-
-        // Get answers for the policy
-        const answers = await Answer.find({ policy_id: policy._id });
-
-        // Format the response
-        const response = {
-            policy,
-            sections,
-            elements,
-            answers
-        };
-
-        res.status(200).json(response);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    res.json({ message: "Policy deleted successfully" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 };

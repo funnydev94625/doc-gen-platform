@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-  const showheadefooter = !pathname.startsWith('/auth') && !pathname.startsWith('/admin') && !pathname.startsWith('/verify-email') && !pathname.startsWith('/policies/')
+  const showheadefooter = !pathname.startsWith('/auth') && !pathname.startsWith('/admin') && !pathname.startsWith('/verify-email') && !pathname.startsWith('/policies/edit') && !pathname.startsWith('/policies/view')
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

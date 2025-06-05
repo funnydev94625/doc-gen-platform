@@ -4,11 +4,13 @@ const Schema = mongoose.Schema;
 const PolicySchema = new Schema({
   template_id: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'Template',
     required: true
   },
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
   created_at: {
     type: Date,

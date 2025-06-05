@@ -14,11 +14,9 @@ type Template = {
 	_id: string;
 	title: string;
 	description: string;
-	type: number;
-	createdBy: string;
-	createdAt: string;
-	updatedAt: string;
 	docx: string;
+	created_at: string;
+	updated_at: string;
 }
 
 export default function PoliciesPage() {
@@ -32,26 +30,23 @@ export default function PoliciesPage() {
 	useEffect(() => {
 		const fetchTemplates = async () => {
 			try {
-				const response = await api.get('/api/templates')
-				// Filter templates where type is 1
-				const filteredTemplates = response.data.filter((template: Template) => template.type === 0) // replace 1
-				setTemplates(filteredTemplates)
+				const response = await api.get('/api/template')
+				setTemplates(response.data)
 			} catch (error) {
 				console.error('Error fetching templates:', error)
 			} finally {
 				setLoading(false)
 			}
 		}
-
 		fetchTemplates()
 	}, [])
 
 	const handleCreatePolicy = async (templateId: string) => {
 		try {
 			setIsCreating(prev => ({ ...prev, [templateId]: true }))
-			const response = await api.post('/api/policies', { template_id: templateId })
+			const response = await api.post('/api/policy', { template_id: templateId })
 			toast.success("Successfully created Policy")
-			router.push(`/policies/${response.data._id}`)
+			router.push(`/policies/mine/${response.data._id}`)
 		} catch (error) {
 			console.error('Error creating policy:', error)
 			toast.error("Failed to create policy")

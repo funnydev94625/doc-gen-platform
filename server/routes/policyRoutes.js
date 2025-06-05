@@ -3,30 +3,19 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const policyController = require('../controllers/policyController');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
-const Template = require('../models/Template');
+const policyController = require("../controllers/policyController");
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
+const Template = require("../models/Template");
 
+router.post("/", [auth], policyController.create_policy);
 
-// Get all policies
-router.get('/', auth, policyController.getPolicies);
+router.get("/", [auth], policyController.get_all_policies);
 
-// Get a single policy
-router.get('/:id', auth, policyController.getPolicy);
+router.get("/:policy_id", [auth], policyController.get_one_policy);
 
-// Get policy with all related data
-router.get('/:id/details', auth, policyController.getPolicyWithDetails);
+router.put("/:policy_id", [auth], policyController.update_policy);
 
-// Create a new policy
-router.post('/', auth, policyController.createPolicy);
-
-// Update a policy
-router.put('/:id', auth, policyController.updatePolicy);
-
-// Delete a policy
-router.delete('/:id', auth, policyController.deletePolicy);
+router.delete("/:policy_id", [auth], policyController.delete_policy);
 
 module.exports = router;
-
-
