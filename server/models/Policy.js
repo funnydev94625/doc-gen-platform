@@ -6,15 +6,15 @@ const PolicySchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
-  createdBy: {
+  user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
   },
-  lastUpdated: {
+  updated_at: {
     type: Date,
     default: Date.now
   },

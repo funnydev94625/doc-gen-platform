@@ -25,7 +25,7 @@ const inter = Inter({ subsets: ["latin"] })
 export default function Layout({ children }: { children: ReactNode }) {
 
   const pathname = usePathname()
-  const hideBar = pathname.startsWith('/auth') || pathname.startsWith('/policies/')
+  const hideBar = pathname.startsWith('/auth') || pathname.startsWith('/templates/')
 
   return (
     <html lang="en" suppressHydrationWarning>

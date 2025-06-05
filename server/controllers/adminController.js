@@ -1,102 +1,42 @@
-const User = require("../models/User");
+const path = require("path");
+const fs = require("fs");
 const Template = require("../models/Template");
-const UserResponse = require("../models/UserResponse");
-const Element = require("../models/Element");
+const Blank = require("../models/Blank");
 const Section = require("../models/Section");
+const mammoth = require("mammoth");
 
-// Get all users (Admin only)
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find()
-      .select("-passwordHash")
-      .sort({ createdAt: -1 });
-    res.json(users);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
+async function extractBlanksFromDocx(filePath) {
+  const { value } = await mammoth.extractRawText({ path: filePath });
+  const matches = [...value.matchAll(/\$\{([^\}]+)\}/g)];
+  // Use a Set to filter out duplicates
+  const uniqueWords = Array.from(new Set(matches.map((m) => m[1])));
+  return uniqueWords;
+}
 
-// Get analytics data (Admin only)
-exports.getAnalytics = async (req, res) => {
-  try {
-    // Count total users
-    const userCount = await User.countDocuments();
-
-    // Count total templates
-    const templateCount = await Template.countDocuments();
-
-    // Count total documents
-    const documentCount = await UserResponse.countDocuments();
-
-    // Get most used templates
-    const mostUsedTemplates = await UserResponse.aggregate([
-      { $group: { _id: "$templateId", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 },
-    ]);
-
-    // Populate template details
-    for (let i = 0; i < mostUsedTemplates.length; i++) {
-      const template = await Template.findById(mostUsedTemplates[i]._id);
-      mostUsedTemplates[i].template = template;
-    }
-
-    // Get document creation stats by day (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const documentsByDay = await UserResponse.aggregate([
-      { $match: { createdAt: { $gte: sevenDaysAgo } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
-
-    res.json({
-      userCount,
-      templateCount,
-      documentCount,
-      mostUsedTemplates,
-      documentsByDay,
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-// Update settings (Admin only)
-exports.updateSettings = async (req, res) => {
-  try {
-    const { settings } = req.body;
-
-    // In a real app, you would store these settings in a database
-    // This is a placeholder
-    res.json({ msg: "Settings updated successfully", settings });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-exports.createTemplate = async (req, res) => {
+exports.create_template = async (req, res) => {
   try {
     const { title, description } = req.body;
-    console.log(req.user);
-
-    // Create new template
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: "No docx file uploaded" });
+    }
     const template = new Template({
       title,
       description,
-      createdBy: req.user.id,
+      docx: req.file.filename, // Save the uploaded file's name
     });
-
     await template.save();
+
+    // Extract blanks from docx and create Blank documents
+    const filePath = path.join(__dirname, "../uploads/policies", template.docx);
+    const blanks = await extractBlanksFromDocx(filePath);
+    await Blank.insertMany(
+      blanks.map((word) => ({
+        template_id: template._id,
+        question: word,
+      }))
+    );
+
     res.json(template);
   } catch (err) {
     console.error(err.message);
@@ -104,112 +44,109 @@ exports.createTemplate = async (req, res) => {
   }
 };
 
-exports.createElement = async (req, res) => {
+exports.update_template = async (req, res) => {
   try {
-    const { template_id, type, question, placeholder, answer_result } = req.body;
-    const exist = await Element.findOne({ template_id, placeholder });
-    console.log(exist)
-    if (exist) {
-      return res.status(400).json({ msg: "Element already exists" });
+    const { id, title, description } = req.body;
+    const update = { title, description };
+
+    if (req.file) {
+      update.docx = req.file.filename;
     }
-    const element = new Element({
-      template_id,
-      type,
-      question,
-      placeholder,
-      answer_result
+
+    const template = await Template.findByIdAndUpdate(id, update, {
+      new: true,
     });
-    element.save();
-    res.json(element._id);
-  } catch {
+
+    // Remove all blanks for this template
+    await Blank.deleteMany({ template_id: template._id });
+
+    // Extract new blanks from docx and create Blank documents
+    if (req.file) {
+      const filePath = path.join(
+        __dirname,
+        "../uploads/policies",
+        req.file.filename
+      );
+      const blanks = await extractBlanksFromDocx(filePath);
+      await Blank.insertMany(
+        blanks.map((word) => ({
+          template_id: template._id,
+          question: word,
+        }))
+      );
+    }
+
+    res.json(template);
+  } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
 };
 
-exports.updateElements = async (req, res) => {
+exports.delete_template = async (req, res) => {
   try {
-    const { elements } = req.body;
-    
-    // Update each element
-    const updatePromises = elements.map(async (element) => {
-      const { _id, section_id, question, placeholder, type, answer_result } = element;
-      
-      return await Element.findByIdAndUpdate(
-        _id,
-        {
-          section_id,
-          question,
-          placeholder,
-          type,
-          answer_result
-        },
+    const { id } = req.params; // or req.params.id if using URL param
+
+    // Delete all blanks related to this template
+    await Blank.deleteMany({ template_id: id });
+
+    // Delete the template itself
+    await Template.findByIdAndDelete(id);
+
+    res.json({ message: "Template and related blanks deleted." });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.get_blanks = async (req, res) => {
+  try {
+    const { template_id } = req.params;
+    const blanks = await Blank.find({ template_id });
+    res.json(blanks);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.update_blank = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ans_res, section_id } = req.body;
+
+    // Build update object dynamically
+    const update = {};
+    if (ans_res !== undefined) update.ans_res = ans_res;
+    if (section_id !== undefined) update.section_id = section_id;
+
+    let blank;
+    if (ans_res === undefined && section_id === undefined) {
+      // Remove ans_res field if both are undefined
+      blank = await Blank.findByIdAndUpdate(
+        id,
+        { $unset: { ans_res: "" } },
         { new: true }
       );
+    } else {
+      blank = await Blank.findByIdAndUpdate(id, update, { new: true });
+    }
+    res.json(blank);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.create_section = async (req, res) => {
+  const { template_id } = req.params;
+  const { title } = req.body;
+  try {
+    const section = new Section({
+      title,
+      template_id,
     });
-
-    const updatedElements = await Promise.all(updatePromises);
-    res.json(updatedElements);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-exports.getTemplate = async (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  try {
-    const template = await Template.findById(id);
-    console.log(template);
-    const elements = await Element.find({ template_id: id });
-    console.log(elements);
-    res.json({ template, elements });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-exports.getAllTemplates = async (req, res) => {
-  try {
-    // const templates = await Template.find({});
-    const templates = await Template.aggregate([
-      {
-        $match: { type: 1, type: 0 },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "createdBy",
-        },
-      },
-      { $unwind: "$createdBy" },
-    ]);
-    res.json(templates);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-exports.getTemplateElement = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const element = await Element.find({ template_id: id });
-    res.json(element);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-exports.createSection = async (req, res) => {
-  try {
-    const { title, template_id } = req.body;
-    const section = new Section({ title, template_id });
     await section.save();
     res.json(section);
   } catch (err) {
@@ -218,34 +155,47 @@ exports.createSection = async (req, res) => {
   }
 };
 
-exports.getAllSections = async (req, res) => {
+exports.get_sections = async (req, res) => {
+  const { template_id } = req.params;
   try {
-    const sections = await Section.find({ template_id: req.params.id });
+    const sections = await Section.find({ template_id, isDel: false });
     res.json(sections);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
-  } 
-}
+  }
+};
 
-exports.updateSection = async (req, res) => {
+exports.update_section = async (req, res) => {
+  const { id } = req.params;
+  const { title } = req.body;
   try {
-    const { id, title } = req.body;
-    const section = await Section.findByIdAndUpdate(id, { title }, { new: true });
+    const section = await Section.findByIdAndUpdate(
+      id,
+      { title },
+      { new: true }
+    );
     res.json(section);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
-}
+};
 
-exports.deleteSection = async (req, res) => {
+exports.delete_section = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-    const section = await Section.findByIdAndUpdate(id, { isDel: true }, { new: true });
-    res.json(section);
+    // Mark section as deleted
+    await Section.findByIdAndUpdate(id, { isDel: true });
+
+    // Remove section_id from all blanks that reference this section
+    await Blank.updateMany({ section_id: id }, { $unset: { section_id: "" } });
+
+    res.json({
+      message: "Section deleted and section_id removed from related blanks.",
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
-}
+};

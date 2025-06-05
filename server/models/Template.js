@@ -11,24 +11,14 @@ const TemplateSchema = new Schema({
     type: String,
     required: true
   },
-  type: {
-    type: Number,
-    default: 0,
-    required: true
-  },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'users',
-    required: true
   },
   docx: {
     type: String,
   },
-  updatedAt: {
+  updated_at: {
     type: Date,
     default: Date.now
   }

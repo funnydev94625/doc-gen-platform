@@ -1,9 +1,9 @@
 const mongoose = require('mongoose')
 
 const AnswerSchema = mongoose.Schema({
-    element_id: {
+    blank_id: {
         type: mongoose.Types.ObjectId,
-        ref: "Element",
+        ref: "Blank",
         required: true
     }, 
     policy_id: {
@@ -16,11 +16,15 @@ const AnswerSchema = mongoose.Schema({
         default: "",
         required: true
     },
-    user: {
+    user_id: {
         type: mongoose.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true
-    }
+    },
+    created_at: {
+        type: Date,
+        default: Date.now
+    },
 })
 
 module.exports = mongoose.model('Answer', AnswerSchema)

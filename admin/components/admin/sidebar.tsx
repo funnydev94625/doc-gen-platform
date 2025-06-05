@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Users, FileText, ShoppingCart, Settings, HelpCircle, LogOut } from "lucide-react"
+import { LayoutDashboard, Users, FileText, ShoppingCart, Settings, HelpCircle, LogOut, Folder } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
 export default function AdminSidebar() {
@@ -17,7 +17,7 @@ export default function AdminSidebar() {
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/users", icon: Users, label: "Users" },
-    { href: "/policies", icon: FileText, label: "Policies" },
+    { href: "/templates", icon: Folder, label: "Templates" }, // Added Templates
     { href: "/sales", icon: ShoppingCart, label: "Sales" },
     { href: "/settings", icon: Settings, label: "Settings" },
   ]
