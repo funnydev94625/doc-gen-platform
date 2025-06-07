@@ -1,10 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
+import { Document, Page, pdfjs } from "react-pdf"
+import "react-pdf/dist/esm/Page/AnnotationLayer.css"
+import "react-pdf/dist/esm/Page/TextLayer.css"
+import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
 type AnsRes = { answer: string; result: string }
 type Blank = {
@@ -44,6 +49,9 @@ export default function PolicyEditOrViewPage() {
     const [blankStep, setBlankStep] = useState(0)
     const [answers, setAnswers] = useState<{ blank_id: string; answer: string }[]>([])
     const [saving, setSaving] = useState(false)
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+    const [numPages, setNumPages] = useState<number | null>(null)
+    const [pageNumber, setPageNumber] = useState(1)
 
     useEffect(() => {
         const fetchPolicy = async () => {
@@ -80,6 +88,22 @@ export default function PolicyEditOrViewPage() {
         }
         fetchPolicy()
     }, [id])
+
+    useEffect(() => {
+        if (mode === "view" && id) {
+            const fetchPdf = async () => {
+                try {
+                    const res = await api.get(`/api/policy/preview/${id}`, { responseType: "blob" });
+                    const blob = new Blob([res.data], { type: "application/pdf" });
+                    const url = window.URL.createObjectURL(blob);
+                    setPdfUrl(url);
+                } catch (err) {
+                    setPdfUrl(null);
+                }
+            };
+            fetchPdf();
+        }
+    }, [mode, id])
 
     // Get current section and blanks
     const sectionList = policy?.sections?.filter(s => !s.isDel) || []
@@ -159,10 +183,42 @@ export default function PolicyEditOrViewPage() {
         )
     }
 
-    if (mode !== "edit") {
+    if (mode === "view") {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <span className="text-lg font-semibold">Not implemented for this mode.</span>
+            <div className="flex flex-col items-center w-full min-h-[100vh] gap-4 p-4">
+                <h2 className="text-xl font-bold mb-4">Policy Preview</h2>
+                {pdfUrl ? (
+                    <div className="flex flex-col items-center">
+                        <Document
+                            file={pdfUrl}
+                            onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                            loading={<span>Loading PDF...</span>}
+                        >
+                            <Page pageNumber={pageNumber} width={800} />
+                        </Document>
+                        <div className="flex gap-2 mt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+                                disabled={pageNumber <= 1}
+                            >
+                                Prev
+                            </Button>
+                            <span>
+                                Page {pageNumber} of {numPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                onClick={() => setPageNumber(p => (numPages ? Math.min(numPages, p + 1) : p))}
+                                disabled={numPages ? pageNumber >= numPages : true}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <span className="text-lg text-muted-foreground">No PDF available.</span>
+                )}
             </div>
         )
     }

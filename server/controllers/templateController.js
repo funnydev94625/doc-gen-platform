@@ -1,4 +1,6 @@
-const Template = require('../models/Template')
+const Template = require('../models/Template');
+const Blank = require('../models/Blank');
+const previewDoc = require('../utils/preview');
 
 exports.getAllTemplates = async (req, res) => {
     try {
@@ -25,3 +27,49 @@ exports.getTemplateById = async (req, res) => {
         res.status(500).send('Server error')
     }
 }
+
+/**
+ * Generate and serve a PDF preview for a template,
+ * with all blank questions replaced by "______".
+ * @route GET /api/template/preview/:id
+ */
+exports.preview_template = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the template
+    const template = await Template.findById(id);
+    if (!template || !template.docx) {
+      return res.status(404).json({ msg: 'Template or template file not found' });
+    }
+
+    // Find all blanks for this template
+    const blanks = await Blank.find({ template_id: id });
+
+    // Build replaces object: { question1: "______", ... }
+    const replaces = {};
+    blanks.forEach((blank, idx) => {
+      // Use the question as the key, or you can use a specific variable name if needed
+      replaces[blank.question] = "______";
+    });
+
+    // Generate the preview PDF
+    const { pdfPath } = await previewDoc('uploads/policies/' + template.docx, replaces, id);
+
+    // Serve the PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=preview.pdf');
+
+    const fs = require('fs');
+    const stream = fs.createReadStream(pdfPath);
+    stream.pipe(res);
+
+    // Optionally delete the PDF after streaming
+    stream.on('close', () => {
+      fs.unlink(pdfPath, () => {});
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};

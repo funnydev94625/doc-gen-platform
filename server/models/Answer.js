@@ -14,7 +14,6 @@ const AnswerSchema = mongoose.Schema({
     answer: {
         type: String,
         default: "",
-        required: true
     },
     user_id: {
         type: mongoose.Types.ObjectId,

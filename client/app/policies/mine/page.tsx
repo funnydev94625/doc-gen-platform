@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Pencil, Eye, ArrowUp, ArrowDown, Trash2 } from "lucide-react"
 import api from "@/lib/api"
+import { toast } from "sonner"
 
 type Policy = {
   _id: string
@@ -93,6 +94,28 @@ export default function MyPoliciesPage() {
     }
   }
 
+  const handleView = async (policyId: string) => {
+    const url = `/api/policy/preview/${policyId}`;
+    // Open the tab immediately to avoid popup blockers
+    const newWindow = window.open("", "_blank");
+    try {
+      const res = await api.get(url, { responseType: "blob" });
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const blobUrl = window.URL.createObjectURL(blob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+        // Optionally revoke after some time
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+      }
+    } catch (err) {
+      if (newWindow) {
+        newWindow.close();
+      }
+      console.error('Error previewing template:', err);
+      toast.error("Failed to preview template");
+    }
+  };
+
   return (
     <div className="p-8 flex justify-center">
       <div className="w-[70%]">
@@ -169,7 +192,7 @@ export default function MyPoliciesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/policies/view/${policy._id}`)}
+                          onClick={() => handleView(policy._id)}
                         >
                           <Eye className="w-4 h-4 mr-1" /> View
                         </Button>

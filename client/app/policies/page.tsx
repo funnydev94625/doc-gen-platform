@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import api from '@/lib/api'
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -26,6 +26,7 @@ export default function PoliciesPage() {
 	const [loading, setLoading] = useState(true)
 	const router = useRouter()
 	const [isCreating, setIsCreating] = useState<Record<string, boolean>>({})
+	const pdfWindowRef = useRef<Window | null>(null);
 
 	useEffect(() => {
 		const fetchTemplates = async () => {
@@ -54,6 +55,28 @@ export default function PoliciesPage() {
 			setIsCreating(prev => ({ ...prev, [templateId]: false }))
 		}
 	}
+
+	const handlePreview = async (templateId: string) => {
+		const url = `/api/template/preview/${templateId}`;
+		// Open the tab immediately to avoid popup blockers
+		const newWindow = window.open("", "_blank");
+		try {
+			const res = await api.get(url, { responseType: "blob" });
+			const blob = new Blob([res.data], { type: "application/pdf" });
+			const blobUrl = window.URL.createObjectURL(blob);
+			if (newWindow) {
+				newWindow.location.href = blobUrl;
+				// Optionally revoke after some time
+				setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+			}
+		} catch (err) {
+			if (newWindow) {
+				newWindow.close();
+			}
+			console.error('Error previewing template:', err);
+			toast.error("Failed to preview template");
+		}
+	};
 
 	return (
 		<div className="container px-4 py-12 md:px-6 md:py-24">
@@ -92,18 +115,17 @@ export default function PoliciesPage() {
 								</p>
 							</CardContent>
 							<CardFooter className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4">
-								<Link href={`/policies/${template._id}`} className="w-full sm:w-1/2">
-									<Button
-										className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold shadow hover:from-blue-600 hover:to-blue-800 transition"
-										variant="default"
-										size="lg"
-									>
-										<span className="flex items-center gap-2">
-											<FileText className="h-4 w-4" />
-											Preview
-										</span>
-									</Button>
-								</Link>
+								<Button
+									className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold shadow hover:from-blue-600 hover:to-blue-800 transition"
+									variant="default"
+									size="lg"
+									onClick={() => handlePreview(template._id)}
+								>
+									<span className="flex items-center gap-2">
+										<FileText className="h-4 w-4" />
+										Preview
+									</span>
+								</Button>
 								{logined && (
 									<div className="w-full sm:w-1/2">
 										<Button

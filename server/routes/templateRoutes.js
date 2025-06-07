@@ -9,5 +9,6 @@ router.get('/', auth, templateController.getAllTemplates)
 // Get a single template
 router.get('/:id', auth, templateController.getTemplateById)
 
+router.get('/preview/:id', auth, templateController.preview_template)
 
 module.exports = router

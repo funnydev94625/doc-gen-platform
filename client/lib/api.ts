@@ -21,7 +21,7 @@ const isTokenExpired = (token: string): boolean => {
 // Create a typed API instance
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: 20000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json'
   }
