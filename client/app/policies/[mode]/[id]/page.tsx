@@ -167,6 +167,18 @@ export default function PolicyEditOrViewPage() {
     // Header handlers
     const handleBack = () => router.push("/policies/mine")
 
+    // Utility to format question string
+    function formatQuestion(q?: string) {
+        if (!q) return "";
+        let str = q.replace(/_/g, " ");
+        if (str.endsWith("Q")) {
+            str = str.slice(0, -1) + "?";
+        } else if (str.endsWith("P")) {
+            str = str.slice(0, -1) + ".";
+        }
+        return str;
+    }
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -274,7 +286,7 @@ export default function PolicyEditOrViewPage() {
                                 <div className="text-base font-semibold mb-1">
                                     Question {blankStep + 1} of {blanks.length}
                                 </div>
-                                <div className="text-lg font-bold mb-2">{currentBlank?.question}</div>
+                                <div className="text-lg font-bold mb-2">{formatQuestion(currentBlank?.question)}</div>
                                 {currentBlank?.ans_res && currentBlank.ans_res.length > 0 ? (
                                     <select
                                         className="border rounded px-3 py-2"

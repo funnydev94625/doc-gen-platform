@@ -174,6 +174,18 @@ export default function TemplateEditPage() {
   // + button enable logic
   const canAddAnsRes = radioValue === "select" && ansResList.every(ar => ar.answer && ar.result)
 
+  // Utility function
+  function formatQuestion(q?: string) {
+    if (!q) return "";
+    let str = q.replace(/_/g, " ");
+    if (str.endsWith("Q")) {
+        str = str.slice(0, -1) + "?";
+    } else if (str.endsWith("P")) {
+        str = str.slice(0, -1) + ".";
+    }
+    return str;
+}
+
   return (
     <div className="flex flex-col w-full min-h-[100vh] gap-4 relative">
       {/* Back to Templates Button */}
@@ -194,7 +206,7 @@ export default function TemplateEditPage() {
               className={`p-2 rounded cursor-pointer ${selectedBlankId === blank._id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"} ${ansResDirty ? "pointer-events-none opacity-60" : ""}`}
               onClick={() => handleBlankClick(blank._id)}
             >
-              {blank.question}
+              {formatQuestion(blank.question)}
             </div>
           ))}
         </div>
