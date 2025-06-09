@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const { validationResult } = require("express-validator");
 
-const sendEmail = async (email) => {
+const sendEmail = async (email, verificationToken) => {
   const transporter = nodemailer.createTransport({
     // Use your SMTP config here
     service: 'gmail',
@@ -71,7 +71,7 @@ exports.register = async (req, res) => {
     await user.save();
 
     // Send verification email
-    sendEmail(user.email)
+    sendEmail(user.email, verificationToken)
 
     res.json({ msg: "Registration successful. Please check your email to verify your account." });
   } catch (err) {
