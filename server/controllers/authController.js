@@ -92,7 +92,7 @@ exports.login = async (req, res) => {
 
     // Check if email is verified
     if (!user.isVerified) {
-      sendEmail(email, verificationToken)
+      sendEmail(email, user.verificationToken)
       return res.status(403).json({ msg: 'Please verify your email before logging in.' });
     }
 
