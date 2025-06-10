@@ -51,11 +51,27 @@ export default function TemplateTablePage() {
     router.push(`/templates/edit/${id}`)
   }
 
-  const handlePreview = (docx?: string) => {
-    if (docx) {
-      window.open(`/uploads/templates/${docx}`, "_blank")
-    }
-  }
+  const handlePreview = async (templateId: string) => {
+		const url = `/api/template/preview/${templateId}`;
+		// Open the tab immediately to avoid popup blockers
+		const newWindow = window.open("", "_blank");
+		try {
+			const res = await api.get(url, { responseType: "blob" });
+			const blob = new Blob([res.data], { type: "application/pdf" });
+			const blobUrl = window.URL.createObjectURL(blob);
+			if (newWindow) {
+				newWindow.location.href = blobUrl;
+				// Optionally revoke after some time
+				setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+			}
+		} catch (err) {
+			if (newWindow) {
+				newWindow.close();
+			}
+			console.error('Error previewing template:', err);
+			toast.error("Failed to preview template");
+		}
+	};
 
   const handleDelete = async (id: string) => {
     setDeleteId(id)
@@ -188,7 +204,7 @@ export default function TemplateTablePage() {
                       <Button size="sm" variant="outline" onClick={() => handleEdit(t._id)}>
                         <Pencil className="w-4 h-4 mr-1" /> Edit
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handlePreview(t.docx)} disabled={!t.docx}>
+                      <Button size="sm" variant="outline" onClick={() => handlePreview(t._id)} disabled={!t.docx}>
                         <Eye className="w-4 h-4 mr-1" /> Preview
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => handleDelete(t._id)}>
