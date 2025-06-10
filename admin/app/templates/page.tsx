@@ -69,7 +69,6 @@ export default function TemplateTablePage() {
 				newWindow.close();
 			}
 			console.error('Error previewing template:', err);
-			toast.error("Failed to preview template");
 		}
 	};
 
