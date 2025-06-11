@@ -115,19 +115,22 @@ exports.get_blanks = async (req, res) => {
 exports.update_blank = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ans_res, section_id } = req.body;
+    const { ans_res, section_id, question } = req.body;
+    console.log(req.body)
 
     // Build update object dynamically
     const update = {};
     if (ans_res !== undefined) update.ans_res = ans_res;
     if (section_id !== undefined) update.section_id = section_id;
+    if (question !== undefined) update.question = question;
 
     let blank;
+    console.log(update)
     if (ans_res === undefined && section_id === undefined) {
       // Remove ans_res field if both are undefined
       blank = await Blank.findByIdAndUpdate(
         id,
-        { $unset: { ans_res: "" } },
+        { $unset: { ans_res: "" }, ...update },
         { new: true }
       );
     } else {

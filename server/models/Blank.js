@@ -13,7 +13,7 @@ const BlankSchema = mongoose.Schema({
     },
     question: {
         type: String,
-        default: "",
+        // default: "",
     },
     ans_res: {
         type: Object,

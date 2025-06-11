@@ -58,8 +58,7 @@ export default function TemplateEditPage() {
         setAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalRadioValue("select")
-        setQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
-        setOriginalQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
+
       } else {
         setQuestion("")
         setRadioValue("default")
@@ -68,6 +67,9 @@ export default function TemplateEditPage() {
         setOriginalRadioValue("default")
         setOriginalQuestion("")
       }
+      console.log(blanks.find(b => b._id === selectedBlankId)?.question || "", "sdfsdf")
+      setQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
+      setOriginalQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
       setSelectedSectionId(blank.section_id || null)
       setAnsResDirty(false)
     } else {
