@@ -33,7 +33,8 @@ exports.create_template = async (req, res) => {
     await Blank.insertMany(
       blanks.map((word) => ({
         template_id: template._id,
-        question: word,
+        placeholder: word,
+        question: ""
       }))
     );
 
@@ -71,7 +72,7 @@ exports.update_template = async (req, res) => {
       await Blank.insertMany(
         blanks.map((word) => ({
           template_id: template._id,
-          question: word,
+          placeholder: word,
         }))
       );
     }

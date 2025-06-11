@@ -6,10 +6,14 @@ const BlankSchema = mongoose.Schema({
         ref: "Template",
         required: true
     },
-    question: {
+    placeholder: {
         type: String,
         default: "",
         required: true
+    },
+    question: {
+        type: String,
+        default: "",
     },
     ans_res: {
         type: Object,

@@ -191,7 +191,7 @@ exports.preview_policy = async (req, res) => {
     // 6. Build replaces object: { [blank.question]: answer or "______" }
     const replaces = {};
     for (const blank of blanks) {
-      replaces[blank.question] = answerMap.get(String(blank._id)) || "______";
+      replaces[blank.placeholder] = answerMap.get(String(blank._id)) || "______";
     }
 
     // 7. Generate the preview PDF

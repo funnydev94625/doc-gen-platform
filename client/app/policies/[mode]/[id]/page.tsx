@@ -195,45 +195,26 @@ export default function PolicyEditOrViewPage() {
         )
     }
 
-    if (mode === "view") {
-        return (
-            <div className="flex flex-col items-center w-full min-h-[100vh] gap-4 p-4">
-                <h2 className="text-xl font-bold mb-4">Policy Preview</h2>
-                {pdfUrl ? (
-                    <div className="flex flex-col items-center">
-                        <Document
-                            file={pdfUrl}
-                            onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                            loading={<span>Loading PDF...</span>}
-                        >
-                            <Page pageNumber={pageNumber} width={800} />
-                        </Document>
-                        <div className="flex gap-2 mt-4">
-                            <Button
-                                variant="outline"
-                                onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-                                disabled={pageNumber <= 1}
-                            >
-                                Prev
-                            </Button>
-                            <span>
-                                Page {pageNumber} of {numPages}
-                            </span>
-                            <Button
-                                variant="outline"
-                                onClick={() => setPageNumber(p => (numPages ? Math.min(numPages, p + 1) : p))}
-                                disabled={numPages ? pageNumber >= numPages : true}
-                            >
-                                Next
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <span className="text-lg text-muted-foreground">No PDF available.</span>
-                )}
-            </div>
-        )
+    const handlePreview = async (policyId: string) => {
+		const url = `/api/policy/preview/${policyId}`;
+    // Open the tab immediately to avoid popup blockers
+    const newWindow = window.open("", "_blank");
+    try {
+      const res = await api.get(url, { responseType: "blob" });
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const blobUrl = window.URL.createObjectURL(blob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+        // Optionally revoke after some time
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+      }
+    } catch (err) {
+      if (newWindow) {
+        newWindow.close();
+      }
+      console.error('Error previewing template:', err);
     }
+	};
 
     return (
         <div className="flex flex-col w-full min-h-[100vh] gap-4 p-4">
@@ -266,11 +247,7 @@ export default function PolicyEditOrViewPage() {
                     <Button
                         className="mt-8"
                         variant="outline"
-                        onClick={() => {
-                            if (policy.template_id?.docx) {
-                                window.open(`/uploads/policies/${policy.template_id.docx}`, "_blank")
-                            }
-                        }}
+                        onClick={() => handlePreview(policy._id)}
                     >
                         Preview
                     </Button>

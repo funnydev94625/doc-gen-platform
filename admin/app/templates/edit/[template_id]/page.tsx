@@ -9,10 +9,11 @@ import api from "@/lib/api"
 import Link from "next/link"
 
 type Blank = {
-  _id: string
-  question: string
-  ans_res?: { answer: string; result: string }[]
-  section_id?: string
+  _id: string,
+  placeholder: string,
+  ans_res?: { answer: string; result: string }[],
+  section_id?: string,
+  isDel?: boolean
 }
 
 type Section = {
@@ -38,6 +39,8 @@ export default function TemplateEditPage() {
   const [loading, setLoading] = useState(false)
   const [ansResDirty, setAnsResDirty] = useState(false)
   const [apiLoading, setApiLoading] = useState(false)
+  const [question, setQuestion] = useState("");
+  const [originalQuestion, setOriginalQuestion] = useState("")
 
   // Fetch blanks and sections
   useEffect(() => {
@@ -55,11 +58,15 @@ export default function TemplateEditPage() {
         setAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalRadioValue("select")
+        setQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
+        setOriginalQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
       } else {
+        setQuestion("")
         setRadioValue("default")
         setAnsResList([])
         setOriginalAnsResList([])
         setOriginalRadioValue("default")
+        setOriginalQuestion("")
       }
       setSelectedSectionId(blank.section_id || null)
       setAnsResDirty(false)
@@ -112,7 +119,7 @@ export default function TemplateEditPage() {
     const update: Partial<Blank> = radioValue === "default"
       ? { ans_res: undefined }
       : { ans_res: ansResList }
-    await api.put(`/api/admin/blank/${selectedBlankId}`, update)
+    await api.put(`/api/admin/blank/${selectedBlankId}`, { question, ...update })
     // Refresh blanks
     const res = await api.get(`/api/admin/blank/${template_id}`)
     setBlanks(res.data)
@@ -124,6 +131,7 @@ export default function TemplateEditPage() {
   const handleCancelAnsRes = () => {
     setRadioValue(originalRadioValue)
     setAnsResList(originalAnsResList.map(ar => ({ ...ar })))
+    setQuestion(originalQuestion)
     setAnsResDirty(false)
   }
 
@@ -179,12 +187,12 @@ export default function TemplateEditPage() {
     if (!q) return "";
     let str = q.replace(/_/g, " ");
     if (str.endsWith("Q")) {
-        str = str.slice(0, -1) + "?";
+      str = str.slice(0, -1) + "?";
     } else if (str.endsWith("P")) {
-        str = str.slice(0, -1) + ".";
+      str = str.slice(0, -1) + ".";
     }
     return str;
-}
+  }
 
   return (
     <div className="flex flex-col w-full min-h-[100vh] gap-4 relative">
@@ -206,7 +214,7 @@ export default function TemplateEditPage() {
               className={`p-2 rounded cursor-pointer ${selectedBlankId === blank._id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"} ${ansResDirty ? "pointer-events-none opacity-60" : ""}`}
               onClick={() => handleBlankClick(blank._id)}
             >
-              {formatQuestion(blank.question)}
+              {formatQuestion(blank.placeholder)}
             </div>
           ))}
         </div>
@@ -234,8 +242,9 @@ export default function TemplateEditPage() {
             </label>
           </div>
           <Input
-            value={blanks.find(b => b._id === selectedBlankId)?.question || ""}
-            disabled
+            value={question}
+            onChange={e => setQuestion(e.target.value)}
+            disabled={!selectedBlankId}
             placeholder="Question"
           />
           {radioValue === "select" && (
@@ -280,14 +289,14 @@ export default function TemplateEditPage() {
               type="button"
               variant="outline"
               onClick={handleCancelAnsRes}
-              disabled={!ansResDirty}
+              disabled={!ansResDirty && question.length === 0}
             >
               Cancel
             </Button>
             <Button
               type="button"
               onClick={handleSaveAnsRes}
-              disabled={!ansResDirty}
+              disabled={!ansResDirty && question.length === 0}
             >
               Save Changes
             </Button>

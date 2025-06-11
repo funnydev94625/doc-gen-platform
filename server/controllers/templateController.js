@@ -50,7 +50,7 @@ exports.preview_template = async (req, res) => {
     const replaces = {};
     blanks.forEach((blank, idx) => {
       // Use the question as the key, or you can use a specific variable name if needed
-      replaces[blank.question] = "______";
+      replaces[blank.placeholder] = "______";
     });
 
     // Generate the preview PDF
