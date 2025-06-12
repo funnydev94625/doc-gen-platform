@@ -263,7 +263,7 @@ export default function PolicyEditOrViewPage() {
                                 <div className="text-base font-semibold mb-1">
                                     Question {blankStep + 1} of {blanks.length}
                                 </div>
-                                <div className="text-lg font-bold mb-2">{formatQuestion(currentBlank?.question)}</div>
+                                <div className="text-lg font-bold mb-2">{currentBlank?.question}</div>
                                 {currentBlank?.ans_res && currentBlank.ans_res.length > 0 ? (
                                     <select
                                         className="border rounded px-3 py-2"
