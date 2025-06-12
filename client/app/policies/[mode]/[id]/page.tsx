@@ -112,6 +112,7 @@ export default function PolicyEditOrViewPage() {
     const sectionList = policy?.sections?.filter(s => !s.isDel) || []
     const currentSection = sectionList.find(s => s._id === selectedSection)
     const blanks = currentSection?.blanks || []
+    const allBlanks = sectionList.flatMap(section => section?.blanks)
     const currentBlank = blanks[blankStep] || null
 
     // For select element, get options from ans_res
@@ -120,6 +121,7 @@ export default function PolicyEditOrViewPage() {
     // Find current answer value from answers state
     const getCurrentAnswer = () => {
         console.log(answers)
+        console.log(allBlanks)
         const found = answers.find(a => a.blank_id === currentBlank?._id)
         return found ? found.answer : ""
     }
@@ -180,6 +182,19 @@ export default function PolicyEditOrViewPage() {
             str = str.slice(0, -1) + ".";
         }
         return str;
+    }
+
+    function renderQuestion(q?: string) {
+        if (!q) return "";
+        // Replace all ${word} with the corresponding answer
+        return q.replace(/\$\{([^\}]+)\}/g, (match, word) => {
+            // Find the blank with this placeholder
+            const refBlank = allBlanks.find(b => b.placeholder === word);
+            if (!refBlank) return match;
+            // Find the answer for this blank
+            const ansObj = answers.find(a => a.blank_id === refBlank._id);
+            return ansObj ? ansObj.answer : match;
+        });
     }
 
     if (loading) {
@@ -289,7 +304,7 @@ export default function PolicyEditOrViewPage() {
                                 <div className="text-base font-semibold mb-1">
                                     Question {blankStep + 1} of {blanks.length}
                                 </div>
-                                <div className="text-lg font-bold mb-2">{currentBlank?.question}</div>
+                                <div className="text-lg font-bold mb-2">{renderQuestion(currentBlank?.question)}</div>
                                 {currentBlank?.ans_res && currentBlank.ans_res.length > 0 ? (
                                     <select
                                         className="border rounded px-3 py-2"
