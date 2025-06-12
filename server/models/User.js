@@ -9,7 +9,9 @@ const UserSchema = new Schema({
   isVerified: { type: Boolean, default: false }, // <-- NEW
   verificationToken: { type: String },           // <-- NEW
   createdAt: { type: Date, default: Date.now },
-  organization: {type: String}
+  organization: {type: String},
+  status: { type: Number, default: 0 }, // 0: pending, 1: active, 2: suspended
+  lastLogin: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('User', UserSchema);

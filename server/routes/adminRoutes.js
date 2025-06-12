@@ -34,46 +34,32 @@ router.put(
   adminController.update_template
 );
 
-router.delete(
-  "/template/:id",
-  [auth, admin],
-  adminController.delete_template
-)
+router.delete("/template/:id", [auth, admin], adminController.delete_template);
 
-router.get(
-  '/blank/:template_id',
-  [auth, admin],
-  adminController.get_blanks
-)
+router.get("/blank/:template_id", [auth, admin], adminController.get_blanks);
 
-router.put(
-  '/blank/:id',
-  [auth, admin],
-  adminController.update_blank
-)
+router.put("/blank/:id", [auth, admin], adminController.update_blank);
 
 router.post(
-  '/section/:template_id',
+  "/section/:template_id",
   [auth, admin],
   adminController.create_section
-)
+);
 
 router.get(
-  '/section/:template_id',
+  "/section/:template_id",
   [auth, admin],
   adminController.get_sections
-)
+);
 
-router.put(
-  '/section/:id',
-  [auth, admin],
-  adminController.update_section
-)
+router.put("/section/:id", [auth, admin], adminController.update_section);
 
-router.delete(
-  '/section/:id',
-  [auth, admin],
-  adminController.delete_section
-)
+router.delete("/section/:id", [auth, admin], adminController.delete_section);
+
+router.post("/change-user-state", [auth, admin], adminController.changeUserState);
+
+router.get("/users", [auth, admin], adminController.getAllUsers);
+
+router.post('/reset-password', [auth, admin], adminController.resetPassword);
 
 module.exports = router;

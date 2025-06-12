@@ -96,6 +96,17 @@ exports.login = async (req, res) => {
       return res.status(403).json({ msg: 'Please verify your email before logging in.' });
     }
 
+    // Check user status
+    if (user.status === 0) {
+      return res.status(403).json({ msg: 'Your account is pending approval.' });
+    }
+    if (user.status === 2) {
+      return res.status(403).json({ msg: 'Your account is suspended. Please contact support.' });
+    }
+    if (user.status !== 1) {
+      return res.status(403).json({ msg: 'Your account is not active.' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });

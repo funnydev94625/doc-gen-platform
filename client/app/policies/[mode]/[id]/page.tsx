@@ -8,6 +8,7 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css"
 import "react-pdf/dist/esm/Page/TextLayer.css"
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
@@ -52,6 +53,8 @@ export default function PolicyEditOrViewPage() {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null)
     const [numPages, setNumPages] = useState<number | null>(null)
     const [pageNumber, setPageNumber] = useState(1)
+    const [showPreviewConfirm, setShowPreviewConfirm] = useState(false)
+    const [pendingPreview, setPendingPreview] = useState(false)
 
     useEffect(() => {
         const fetchPolicy = async () => {
@@ -195,26 +198,49 @@ export default function PolicyEditOrViewPage() {
         )
     }
 
-    const handlePreview = async (policyId: string) => {
-		const url = `/api/policy/preview/${policyId}`;
-    // Open the tab immediately to avoid popup blockers
-    const newWindow = window.open("", "_blank");
-    try {
-      const res = await api.get(url, { responseType: "blob" });
-      const blob = new Blob([res.data], { type: "application/pdf" });
-      const blobUrl = window.URL.createObjectURL(blob);
-      if (newWindow) {
-        newWindow.location.href = blobUrl;
-        // Optionally revoke after some time
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-      }
-    } catch (err) {
-      if (newWindow) {
-        newWindow.close();
-      }
-      console.error('Error previewing template:', err);
+    const handlePreview = async (policyId: string, saveFirst = false) => {
+        if (saveFirst) {
+            setSaving(true)
+            try {
+                await api.put(`/api/policy/${id}`, { answers })
+            } catch (err) {
+                // Optionally, show error
+            }
+            setSaving(false)
+        }
+        const url = `/api/policy/preview/${policyId}`;
+        const newWindow = window.open("", "_blank");
+        try {
+            const res = await api.get(url, { responseType: "blob" });
+            const blob = new Blob([res.data], { type: "application/pdf" });
+            const blobUrl = window.URL.createObjectURL(blob);
+            if (newWindow) {
+                newWindow.location.href = blobUrl;
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+            }
+        } catch (err) {
+            if (newWindow) newWindow.close();
+            console.error('Error previewing template:', err);
+        }
+    };
+
+    // Handler for preview button click
+    const handlePreviewClick = () => {
+        setShowPreviewConfirm(true)
     }
-	};
+
+    // Handler for modal actions
+    const handlePreviewConfirm = async (action: "yes" | "no" | "cancel") => {
+        setShowPreviewConfirm(false)
+        if (action === "yes") {
+            setPendingPreview(true)
+            await handlePreview(policy._id, true)
+            setPendingPreview(false)
+        } else if (action === "no") {
+            await handlePreview(policy._id, false)
+        }
+        // cancel does nothing
+    }
 
     return (
         <div className="flex flex-col w-full min-h-[100vh] gap-4 p-4">
@@ -247,7 +273,7 @@ export default function PolicyEditOrViewPage() {
                     <Button
                         className="mt-8"
                         variant="outline"
-                        onClick={() => handlePreview(policy._id)}
+                        onClick={handlePreviewClick}
                     >
                         Preview
                     </Button>
@@ -304,7 +330,7 @@ export default function PolicyEditOrViewPage() {
                                 <Button
                                     variant="outline"
                                     onClick={handleNext}
-                                    disabled={blankStep === blanks.length - 1}
+                                    disabled={blankStep === blanks.length - 1 || getCurrentAnswer() === ""}
                                 >
                                     Next
                                 </Button>
@@ -313,6 +339,37 @@ export default function PolicyEditOrViewPage() {
                     )}
                 </div>
             </div>
+
+            <Dialog open={showPreviewConfirm} onOpenChange={setShowPreviewConfirm}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Do you want to save answers now and preview?</DialogTitle>
+                    </DialogHeader>
+                    <DialogFooter className="flex flex-row gap-2 justify-end">
+                        <Button
+                            variant="default"
+                            onClick={() => handlePreviewConfirm("yes")}
+                            disabled={pendingPreview}
+                        >
+                            Yes
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handlePreviewConfirm("no")}
+                            disabled={pendingPreview}
+                        >
+                            No
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => handlePreviewConfirm("cancel")}
+                            disabled={pendingPreview}
+                        >
+                            Cancel
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
