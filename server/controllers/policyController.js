@@ -4,6 +4,7 @@ const Section = require("../models/Section");
 const Blank = require("../models/Blank");
 const Template = require("../models/Template");
 const previewDoc = require("../utils/preview");
+const UserAnswer = require("../models/UserAnswer");
 
 exports.create_policy = async (req, res) => {
   try {
@@ -97,10 +98,12 @@ exports.get_one_policy = async (req, res) => {
         },
       },
     ]);
+    const userAnswers = await UserAnswer.find({ user_id: req.user.id });
 
     res.json({
       ...policy.toObject(),
       sections,
+      userAnswers,
     });
   } catch (err) {
     console.error(err.message);
@@ -110,7 +113,7 @@ exports.get_one_policy = async (req, res) => {
 
 exports.update_policy = async (req, res) => {
   try {
-    console.log(req.user.id)
+    console.log(req.user.id);
     const { answers } = req.body;
     const policy_id = req.body.policy_id || req.params.policy_id;
     const user_id = req.user.id;
@@ -120,19 +123,33 @@ exports.update_policy = async (req, res) => {
     }
 
     for (const ans of answers) {
-      const { blank_id, answer } = ans;
+      const { blank_id, answer, isDefault } = ans;
       if (!blank_id) continue;
 
-      const exist = await Answer.findOne({
-        policy_id,
-        user_id,
-        blank_id,
-      });
-      if (exist) {
-        exist.answer = answer;
-        await exist.save();
+      const exist = await Answer.findOne({ policy_id, user_id, blank_id });
+
+      if (isDefault) {
+        // Always remove Answer if exists
+        if (exist) {
+          await Answer.deleteOne({ _id: exist._id });
+        }
+        // Get question string once
+        const blank = await Blank.findById(blank_id).select("question");
+        if (!blank || !blank.question) {
+          return res.status(404).json({ error: "Blank not found" });
+        }
+        await UserAnswer.findOneAndUpdate(
+          { question: blank.question, user_id },
+          { answer },
+          { upsert: true, new: true }
+        );
       } else {
-        await Answer.create({ policy_id, user_id, blank_id, answer }); // <-- FIXED HERE
+        if (exist) {
+          exist.answer = answer;
+          await exist.save();
+        } else {
+          await Answer.create({ policy_id, user_id, blank_id, answer });
+        }
       }
     }
 
@@ -171,7 +188,9 @@ exports.preview_policy = async (req, res) => {
     // 2. Find the template and get docx
     const template = await Template.findById(policy.template_id);
     if (!template || !template.docx) {
-      return res.status(404).json({ error: "Template or template file not found" });
+      return res
+        .status(404)
+        .json({ error: "Template or template file not found" });
     }
 
     // 3. Get all blanks for this template
@@ -191,22 +210,27 @@ exports.preview_policy = async (req, res) => {
     // 6. Build replaces object: { [blank.question]: answer or "______" }
     const replaces = {};
     for (const blank of blanks) {
-      replaces[blank.placeholder] = answerMap.get(String(blank._id)) || "______";
+      replaces[blank.placeholder] =
+        answerMap.get(String(blank._id)) || "______";
     }
 
     // 7. Generate the preview PDF
-    const { pdfPath } = await previewDoc('uploads/policies/' + template.docx, replaces, policy.user_id);
+    const { pdfPath } = await previewDoc(
+      "uploads/policies/" + template.docx,
+      replaces,
+      policy.user_id
+    );
 
     // 8. Serve the PDF
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename=policy_preview.pdf');
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline; filename=policy_preview.pdf");
 
-    const fs = require('fs');
+    const fs = require("fs");
     const stream = fs.createReadStream(pdfPath);
     stream.pipe(res);
 
     // Optionally delete the PDF after streaming
-    stream.on('close', () => {
+    stream.on("close", () => {
       fs.unlink(pdfPath, () => {});
     });
   } catch (err) {
@@ -214,4 +238,3 @@ exports.preview_policy = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
-
