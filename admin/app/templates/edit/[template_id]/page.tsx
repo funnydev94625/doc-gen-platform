@@ -13,7 +13,8 @@ type Blank = {
   placeholder: string,
   ans_res?: { answer: string; result: string }[],
   section_id?: string,
-  isDel?: boolean
+  isDel?: boolean,
+  question?: string
 }
 
 type Section = {
@@ -25,7 +26,6 @@ export default function TemplateEditPage() {
   const params = useParams()
   const template_id = params?.template_id as string
 
-  // State
   const [blanks, setBlanks] = useState<Blank[]>([])
   const [sections, setSections] = useState<Section[]>([])
   const [selectedBlankId, setSelectedBlankId] = useState<string | null>(null)
@@ -39,7 +39,7 @@ export default function TemplateEditPage() {
   const [loading, setLoading] = useState(false)
   const [ansResDirty, setAnsResDirty] = useState(false)
   const [apiLoading, setApiLoading] = useState(false)
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState("")
   const [originalQuestion, setOriginalQuestion] = useState("")
 
   // Fetch blanks and sections
@@ -58,18 +58,14 @@ export default function TemplateEditPage() {
         setAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalAnsResList(blank.ans_res.map(ar => ({ ...ar })))
         setOriginalRadioValue("select")
-
       } else {
-        setQuestion("")
         setRadioValue("default")
         setAnsResList([])
         setOriginalAnsResList([])
         setOriginalRadioValue("default")
-        setOriginalQuestion("")
       }
-      console.log(blanks.find(b => b._id === selectedBlankId)?.question || "", "sdfsdf")
-      setQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
-      setOriginalQuestion(blanks.find(b => b._id === selectedBlankId)?.question || "")
+      setQuestion(blank.question || "")
+      setOriginalQuestion(blank.question || "")
       setSelectedSectionId(blank.section_id || null)
       setAnsResDirty(false)
     } else {
@@ -95,10 +91,11 @@ export default function TemplateEditPage() {
 
   // Handle ans_res change
   const handleAnsResChange = (idx: number, field: "answer" | "result", value: string) => {
-    setAnsResList(list => {
-      const updated = list.map((ar, i) => i === idx ? { 'answer': value, 'result': value } : ar)
-      return updated
-    })
+    setAnsResList(list =>
+      list.map((ar, i) =>
+        i === idx ? { ...ar, [field]: value, result: value } : ar
+      )
+    )
     setAnsResDirty(true)
   }
 
@@ -186,14 +183,14 @@ export default function TemplateEditPage() {
 
   // Utility function
   function formatQuestion(q?: string) {
-    if (!q) return "";
-    let str = q.replace(/_/g, " ");
+    if (!q) return ""
+    let str = q.replace(/_/g, " ")
     if (str.endsWith("Q")) {
-      str = str.slice(0, -1) + "?";
+      str = str.slice(0, -1) + "?"
     } else if (str.endsWith("P")) {
-      str = str.slice(0, -1) + ".";
+      str = str.slice(0, -1) + "."
     }
-    return str;
+    return str
   }
 
   return (

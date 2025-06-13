@@ -4,21 +4,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import api from "@/lib/api"
-import { Document, Page, pdfjs } from "react-pdf"
-import "react-pdf/dist/esm/Page/AnnotationLayer.css"
-import "react-pdf/dist/esm/Page/TextLayer.css"
 import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog"
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
 type AnsRes = { answer: string; result: string }
 type Blank = {
     _id: string
     question: string
-    ans_res?: AnsRes[],
+    ans_res?: AnsRes[]
     answer: string
+    placeholder?: string
 }
 type Section = {
     _id: string
@@ -51,9 +47,6 @@ export default function PolicyEditOrViewPage() {
     const [blankStep, setBlankStep] = useState(0)
     const [answers, setAnswers] = useState<{ blank_id: string; answer: string }[]>([])
     const [saving, setSaving] = useState(false)
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null)
-    const [numPages, setNumPages] = useState<number | null>(null)
-    const [pageNumber, setPageNumber] = useState(1)
     const [showPreviewConfirm, setShowPreviewConfirm] = useState(false)
     const [pendingPreview, setPendingPreview] = useState(false)
     const [defaultChecked, setDefaultChecked] = useState<{ [blankId: string]: boolean }>({})
@@ -61,7 +54,7 @@ export default function PolicyEditOrViewPage() {
     const [error, setError] = useState<string | null>(null)
     const messageTimeout = useRef<NodeJS.Timeout | null>(null)
 
-    // Auto-hide messages after 55 seconds
+    // Auto-hide messages after 5 seconds
     useEffect(() => {
         if (message || error) {
             if (messageTimeout.current) clearTimeout(messageTimeout.current)
@@ -81,30 +74,24 @@ export default function PolicyEditOrViewPage() {
             const res = await api.get(`/api/policy/${id}`)
             const data = res.data
             setPolicy(data)
-            // Select first non-deleted section by default
             const firstSection = data.sections.find((s: Section) => !s.isDel)
             setSelectedSection(firstSection?._id || null)
             setBlankStep(0)
             const blanks = data.sections.map((s: Section) => s.blanks).flat()
             const userAnswers = data.userAnswers || []
-
-            // Prepare answers: use blank.answer if exists, otherwise use userAnswers by question
-            // If using userAnswers, mark checked = true
             const answersArr: { blank_id: string; answer: string; checked?: boolean }[] = blanks
-            .filter((blank: Blank) => blank.answer || userAnswers.find((ua: any) => ua.question === blank.question))
-            .map((blank: Blank) => {
-                if (blank.answer) {
-                    return { blank_id: blank._id, answer: blank.answer }
-                }
-                // Try to find userAnswer by question
-                const userAns = userAnswers.find((ua: any) => ua.question === blank.question)
-                if (userAns) {
-                    return { blank_id: blank._id, answer: userAns.answer, checked: true }
-                }
-                // return { blank_id: blank._id, answer: "" }
-            })
+                .filter((blank: Blank) => blank.answer || userAnswers.find((ua: any) => ua.question === blank.question))
+                .map((blank: Blank) => {
+                    if (blank.answer) {
+                        return { blank_id: blank._id, answer: blank.answer }
+                    }
+                    const userAns = userAnswers.find((ua: any) => ua.question === blank.question)
+                    if (userAns) {
+                        return { blank_id: blank._id, answer: userAns.answer, checked: true }
+                    }
+                })
+                .filter(Boolean) as { blank_id: string; answer: string; checked?: boolean }[]
             setAnswers(answersArr)
-            // Set defaultChecked state for checkboxes
             const checkedMap: { [blankId: string]: boolean } = {}
             answersArr.forEach(ans => {
                 if (ans.checked) checkedMap[ans.blank_id] = true
@@ -115,33 +102,14 @@ export default function PolicyEditOrViewPage() {
         fetchPolicy()
     }, [id])
 
-    useEffect(() => {
-        if (mode === "view" && id) {
-            const fetchPdf = async () => {
-                try {
-                    const res = await api.get(`/api/policy/preview/${id}`, { responseType: "blob" });
-                    const blob = new Blob([res.data], { type: "application/pdf" });
-                    const url = window.URL.createObjectURL(blob);
-                    setPdfUrl(url);
-                } catch (err) {
-                    setPdfUrl(null);
-                }
-            };
-            fetchPdf();
-        }
-    }, [mode, id])
-
-    // Get current section and blanks
+    // Section/blank helpers
     const sectionList = policy?.sections?.filter(s => !s.isDel) || []
     const currentSection = sectionList.find(s => s._id === selectedSection)
     const blanks = currentSection?.blanks || []
     const allBlanks = sectionList.flatMap(section => section?.blanks)
     const currentBlank = blanks[blankStep] || null
-
-    // For select element, get options from ans_res
     const selectOptions = currentBlank?.ans_res?.filter(opt => opt.answer) || []
 
-    // Find current answer value from answers state
     const getCurrentAnswer = () => {
         const found = answers.find(a => a.blank_id === currentBlank?._id)
         return found ? found.answer : ""
@@ -152,11 +120,9 @@ export default function PolicyEditOrViewPage() {
         setSelectedSection(sid)
         setBlankStep(0)
     }
-
     const handlePrev = () => setBlankStep(s => Math.max(0, s - 1))
     const handleNext = () => setBlankStep(s => Math.min(blanks.length - 1, s + 1))
 
-    // Input change handler for blanks without ans_res
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value
         if (!currentBlank) return
@@ -166,11 +132,9 @@ export default function PolicyEditOrViewPage() {
         })
     }
 
-    // Select change handler for blanks with ans_res
     const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedAnswer = e.target.value
         if (!currentBlank) return
-        // Find the result for the selected answer
         const found = currentBlank.ans_res?.find(opt => opt.answer === selectedAnswer)
         setAnswers(prev => {
             const others = prev.filter(a => a.blank_id !== currentBlank._id)
@@ -178,7 +142,6 @@ export default function PolicyEditOrViewPage() {
         })
     }
 
-    // Save handler
     const handleSave = async () => {
         setSaving(true)
         setMessage(null)
@@ -190,38 +153,75 @@ export default function PolicyEditOrViewPage() {
         try {
             await api.put(`/api/policy/${id}`, { answers: payload })
             setMessage("Answers saved successfully.")
-        } catch (err) {
+        } catch {
             setError("Failed to save answers.")
         }
         setSaving(false)
     }
 
-    // Header handlers
     const handleBack = () => router.push("/policies/mine")
 
-    // Utility to format question string
-    function formatQuestion(q?: string) {
-        if (!q) return "";
-        let str = q.replace(/_/g, " ");
-        if (str.endsWith("Q")) {
-            str = str.slice(0, -1) + "?";
-        } else if (str.endsWith("P")) {
-            str = str.slice(0, -1) + ".";
-        }
-        return str;
+    function renderQuestion(q?: string) {
+        if (!q) return ""
+        return q.replace(/\$\{([^\}]+)\}/g, (match, word) => {
+            const refBlank = allBlanks.find(b => b.placeholder === word)
+            if (!refBlank) return match
+            const ansObj = answers.find(a => a.blank_id === refBlank._id)
+            return ansObj ? ansObj.answer : match
+        })
     }
 
-    function renderQuestion(q?: string) {
-        if (!q) return "";
-        // Replace all ${word} with the corresponding answer
-        return q.replace(/\$\{([^\}]+)\}/g, (match, word) => {
-            // Find the blank with this placeholder
-            const refBlank = allBlanks.find(b => b.placeholder === word);
-            if (!refBlank) return match;
-            // Find the answer for this blank
-            const ansObj = answers.find(a => a.blank_id === refBlank._id);
-            return ansObj ? ansObj.answer : match;
-        });
+    const handlePreview = async (policyId: string, saveFirst = false) => {
+        setMessage(null)
+        setError(null)
+        if (saveFirst) {
+            setSaving(true)
+            try {
+                await api.put(`/api/policy/${id}`, { answers })
+                setMessage("Answers saved. Generating preview...")
+            } catch {
+                setError("Failed to save answers before preview.")
+                setSaving(false)
+                return
+            }
+            setSaving(false)
+        }
+        const url = `/api/policy/preview/${policyId}`
+        const newWindow = window.open("", "_blank")
+        try {
+            const res = await api.get(url, { responseType: "blob" })
+            const blob = new Blob([res.data], { type: "application/pdf" })
+            const blobUrl = window.URL.createObjectURL(blob)
+            if (newWindow) {
+                newWindow.location.href = blobUrl
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000)
+            }
+            setMessage("Preview generated.")
+        } catch {
+            if (newWindow) newWindow.close()
+            setError("Failed to generate preview.")
+        }
+    }
+
+    const handlePreviewClick = () => setShowPreviewConfirm(true)
+
+    const handlePreviewConfirm = async (action: "yes" | "no" | "cancel") => {
+        setShowPreviewConfirm(false)
+        if (action === "yes") {
+            setPendingPreview(true)
+            await handlePreview(policy!._id, true)
+            setPendingPreview(false)
+        } else if (action === "no") {
+            await handlePreview(policy!._id, false)
+        }
+    }
+
+    const handleDefaultCheckbox = (checked: boolean) => {
+        if (!currentBlank) return
+        setDefaultChecked(prev => ({
+            ...prev,
+            [currentBlank._id]: checked
+        }))
     }
 
     if (loading) {
@@ -238,65 +238,6 @@ export default function PolicyEditOrViewPage() {
                 <span className="text-lg font-semibold text-red-600">Policy not found</span>
             </div>
         )
-    }
-
-    const handlePreview = async (policyId: string, saveFirst = false) => {
-        setMessage(null)
-        setError(null)
-        if (saveFirst) {
-            setSaving(true)
-            try {
-                await api.put(`/api/policy/${id}`, { answers })
-                setMessage("Answers saved. Generating preview...")
-            } catch (err) {
-                setError("Failed to save answers before preview.")
-                setSaving(false)
-                return
-            }
-            setSaving(false)
-        }
-        const url = `/api/policy/preview/${policyId}`;
-        const newWindow = window.open("", "_blank");
-        try {
-            const res = await api.get(url, { responseType: "blob" });
-            const blob = new Blob([res.data], { type: "application/pdf" });
-            const blobUrl = window.URL.createObjectURL(blob);
-            if (newWindow) {
-                newWindow.location.href = blobUrl;
-                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-            }
-            setMessage("Preview generated.");
-        } catch (err) {
-            if (newWindow) newWindow.close();
-            setError("Failed to generate preview.");
-        }
-    };
-
-    // Handler for preview button click
-    const handlePreviewClick = () => {
-        setShowPreviewConfirm(true)
-    }
-
-    // Handler for modal actions
-    const handlePreviewConfirm = async (action: "yes" | "no" | "cancel") => {
-        setShowPreviewConfirm(false)
-        if (action === "yes") {
-            setPendingPreview(true)
-            await handlePreview(policy._id, true)
-            setPendingPreview(false)
-        } else if (action === "no") {
-            await handlePreview(policy._id, false)
-        }
-        // cancel does nothing
-    }
-
-    // Checkbox change handler
-    const handleDefaultCheckbox = (checked: boolean) => {
-        if (!currentBlank) return
-        setDefaultChecked(prev => ({
-            ...prev,
-            [currentBlank._id]: checked
-        }))
     }
 
     return (
@@ -361,7 +302,6 @@ export default function PolicyEditOrViewPage() {
                                     <select
                                         className="border rounded px-3 py-2"
                                         value={
-                                            // Find the answer in answers, then find the corresponding answer in ans_res
                                             (() => {
                                                 const found = answers.find(a => a.blank_id === currentBlank._id)
                                                 if (!found) return ""
@@ -385,18 +325,15 @@ export default function PolicyEditOrViewPage() {
                                             onChange={handleInputChange}
                                             placeholder="Your answer..."
                                         />
-                                        <div className="flex items-center justify-between mt-2">
-                                            <div /> {/* Empty div to push checkbox to the right */}
-                                            <div className="flex items-center gap-2">
-                                                <Checkbox
-                                                    id="default-answer"
-                                                    checked={!!defaultChecked[currentBlank?._id]}
-                                                    onCheckedChange={handleDefaultCheckbox}
-                                                />
-                                                <label htmlFor="default-answer" className="text-sm">
-                                                    Use as a default answer for this question
-                                                </label>
-                                            </div>
+                                        <div className="flex items-center justify-end gap-2 mt-2">
+                                            <label htmlFor="default-answer" className="text-sm">
+                                                Use as a default answer for this question
+                                            </label>
+                                            <Checkbox
+                                                id="default-answer"
+                                                checked={!!defaultChecked[currentBlank?._id]}
+                                                onCheckedChange={handleDefaultCheckbox}
+                                            />
                                         </div>
                                     </>
                                 )}

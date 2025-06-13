@@ -18,7 +18,7 @@ type Template = {
   docx?: string
 }
 
-type SortKey = keyof Pick<Template, "title" | "description" | "created_at" | "updated_at">
+type SortKey = "title" | "description" | "created_at" | "updated_at"
 
 export default function TemplateTablePage() {
   const [templates, setTemplates] = useState<Template[]>([])
@@ -32,49 +32,35 @@ export default function TemplateTablePage() {
   const router = useRouter()
 
   useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const res = await api.get("/api/template")
-        setTemplates(res.data)
-      } catch (err) {
+    api.get("/api/template")
+      .then(res => setTemplates(res.data))
+      .catch(() => {
         setTemplates([])
         setAlertMsg("Failed to fetch templates.")
         setAlertType("destructive")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTemplates()
+      })
+      .finally(() => setLoading(false))
   }, [])
 
-  const handleEdit = (id: string) => {
-    router.push(`/templates/edit/${id}`)
-  }
+  const handleEdit = (id: string) => router.push(`/templates/edit/${id}`)
 
   const handlePreview = async (templateId: string) => {
-		const url = `/api/template/preview/${templateId}`;
-		// Open the tab immediately to avoid popup blockers
-		const newWindow = window.open("", "_blank");
-		try {
-			const res = await api.get(url, { responseType: "blob" });
-			const blob = new Blob([res.data], { type: "application/pdf" });
-			const blobUrl = window.URL.createObjectURL(blob);
-			if (newWindow) {
-				newWindow.location.href = blobUrl;
-				// Optionally revoke after some time
-				setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-			}
-		} catch (err) {
-			if (newWindow) {
-				newWindow.close();
-			}
-			console.error('Error previewing template:', err);
-		}
-	};
-
-  const handleDelete = async (id: string) => {
-    setDeleteId(id)
+    const url = `/api/template/preview/${templateId}`
+    const newWindow = window.open("", "_blank")
+    try {
+      const res = await api.get(url, { responseType: "blob" })
+      const blob = new Blob([res.data], { type: "application/pdf" })
+      const blobUrl = window.URL.createObjectURL(blob)
+      if (newWindow) {
+        newWindow.location.href = blobUrl
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000)
+      }
+    } catch {
+      if (newWindow) newWindow.close()
+    }
   }
+
+  const handleDelete = (id: string) => setDeleteId(id)
 
   const confirmDelete = async () => {
     if (!deleteId) return
@@ -83,7 +69,7 @@ export default function TemplateTablePage() {
       setTemplates(templates => templates.filter(t => t._id !== deleteId))
       setAlertMsg("Template deleted successfully.")
       setAlertType("default")
-    } catch (err) {
+    } catch {
       setAlertMsg("Failed to delete template.")
       setAlertType("destructive")
     } finally {
@@ -91,7 +77,6 @@ export default function TemplateTablePage() {
     }
   }
 
-  // Search and sort logic
   const filteredTemplates = useMemo(() => {
     let filtered = templates
     if (search.trim()) {
@@ -120,9 +105,8 @@ export default function TemplateTablePage() {
   }, [templates, search, sortKey, sortAsc])
 
   const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortAsc(a => !a)
-    } else {
+    if (sortKey === key) setSortAsc(a => !a)
+    else {
       setSortKey(key)
       setSortAsc(true)
     }
@@ -218,7 +202,7 @@ export default function TemplateTablePage() {
         </Table>
       </div>
 
-      {/* Custom Delete Confirm Modal */}
+      {/* Delete Confirm Modal */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 relative">

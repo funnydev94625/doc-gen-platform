@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { ErrorDisplay } from "@/components/ui/error-display"
-
 import {
   Lock,
   Mail,
@@ -26,104 +25,53 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-
-  // UI state
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState({
-    msg: "",
-    email: false,
-    password: false
-  })
-  const [formSubmitted, setFormSubmitted] = useState(false)
-
-  // Animation state
+  const [error, setError] = useState({ msg: "", email: false, password: false })
   const [fadeIn, setFadeIn] = useState(false)
 
   const { login, user } = useAuth()
   const router = useRouter()
 
-  // Fade in animation on mount
   useEffect(() => {
     setFadeIn(true)
   }, [])
 
-  // Check if user is already logged in
   useEffect(() => {
     if (user && user.email) {
       router.push('/')
     }
   }, [user, router])
 
-  // Validate email format
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  const validateEmail = (email: string): boolean =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  // Toggle password visibility
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
-
-  // Form validation
   const validateForm = (): boolean => {
-    let isValid = true
-    setError({
-      msg: "",
-      email: false,
-      password: false
-    })
-
     if (!email.trim()) {
-      setError({
-        msg: "Email is required",
-        email: true,
-        password: false
-      })
-      isValid = false
-    } else if (!validateEmail(email)) {
-      setError({
-        msg: "Please enter a valid email address",
-        email: true,
-        password: false
-      })
-      isValid = false
+      setError({ msg: "Email is required", email: true, password: false })
+      return false
     }
-
+    if (!validateEmail(email)) {
+      setError({ msg: "Please enter a valid email address", email: true, password: false })
+      return false
+    }
     if (!password) {
-      setError({
-        msg: "Password is required",
-        email: false,
-        password: true
-      })
-      isValid = false
+      setError({ msg: "Password is required", email: false, password: true })
+      return false
     }
-
-    return isValid
+    setError({ msg: "", email: false, password: false })
+    return true
   }
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormSubmitted(true)
-    setError({
-      msg: "",
-      email: false,
-      password: false
-    })
-
-    if (!validateForm()) {
-      return
-    }
-
+    setError({ msg: "", email: false, password: false })
+    if (!validateForm()) return
     setIsSubmitting(true)
-
     try {
       await login(email, password)
     } catch (err: any) {
-      console.log(err)
       setError({
-        msg: typeof (err.message) === "string" ? err.message : "Failed to sign in",
+        msg: typeof err.message === "string" ? err.message : "Failed to sign in",
         email: false,
         password: false
       })
@@ -153,11 +101,9 @@ export default function SignInPage() {
                 priority
               />
             </Link>
-
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
               Admin Portal
             </h1>
-
             <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400 mb-2">
               <ShieldCheck className="h-4 w-4 mr-1.5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
               <span>Enterprise-grade security platform</span>
@@ -171,7 +117,7 @@ export default function SignInPage() {
             </h2>
 
             {/* Error Message */}
-            <ErrorDisplay 
+            <ErrorDisplay
               message={error.msg}
               type="error"
               className="mb-4"
@@ -196,10 +142,7 @@ export default function SignInPage() {
                     type="email"
                     autoComplete="email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (formSubmitted) validateForm();
-                    }}
+                    onChange={e => setEmail(e.target.value)}
                     className={cn(
                       "pl-10 bg-white dark:bg-gray-800 transition-all duration-200",
                       "focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400",
@@ -236,10 +179,7 @@ export default function SignInPage() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      if (formSubmitted) validateForm();
-                    }}
+                    onChange={e => setPassword(e.target.value)}
                     className={cn(
                       "pl-10 bg-white dark:bg-gray-800 transition-all duration-200",
                       "focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400",
@@ -251,7 +191,7 @@ export default function SignInPage() {
                   />
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
+                    onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
@@ -269,7 +209,7 @@ export default function SignInPage() {
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  onCheckedChange={checked => setRememberMe(!!checked)}
                 />
                 <Label
                   htmlFor="remember"
@@ -295,37 +235,30 @@ export default function SignInPage() {
       {/* Illustration/Background - Only visible on larger screens */}
       <div className="hidden lg:block relative w-full md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-20"></div>
-
         <div className="absolute inset-0 flex flex-col items-center justify-center p-12">
           <div className="max-w-md text-center">
             <div className="mb-8 inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
               <ShieldCheck className="h-12 w-12 text-white" aria-hidden="true" />
             </div>
-
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Security Policy Management
             </h2>
-
             <p className="text-lg text-blue-100 mb-8">
               Centralized control for your organization's security policies and compliance requirements.
             </p>
-
             <div className="grid grid-cols-2 gap-4 text-left">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                 <h3 className="font-medium text-white mb-1">Compliance Ready</h3>
                 <p className="text-sm text-blue-100">NIST, ISO, and CIS aligned frameworks</p>
               </div>
-
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                 <h3 className="font-medium text-white mb-1">Customizable</h3>
                 <p className="text-sm text-blue-100">Tailor to your organization's needs</p>
               </div>
-
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                 <h3 className="font-medium text-white mb-1">Centralized</h3>
                 <p className="text-sm text-blue-100">Single source of truth for all policies</p>
               </div>
-
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                 <h3 className="font-medium text-white mb-1">Audit Ready</h3>
                 <p className="text-sm text-blue-100">Comprehensive tracking and reporting</p>
@@ -333,8 +266,6 @@ export default function SignInPage() {
             </div>
           </div>
         </div>
-
-        {/* Bottom gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-800 to-transparent"></div>
       </div>
     </div>

@@ -15,7 +15,6 @@ import api from "@/lib/api"
 interface TemplateData {
   title: string
   description: string
-  status: string
 }
 
 export default function AddTemplatePage() {
@@ -25,8 +24,7 @@ export default function AddTemplatePage() {
   const [success, setSuccess] = useState(false)
   const [templateData, setTemplateData] = useState<TemplateData>({
     title: "",
-    description: "",
-    status: "Draft"
+    description: ""
   })
   const [file, setFile] = useState<File | null>(null)
   const [fileUrl, setFileUrl] = useState("")

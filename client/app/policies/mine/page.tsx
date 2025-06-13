@@ -32,17 +32,10 @@ export default function MyPoliciesPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const fetchPolicies = async () => {
-      try {
-        const res = await api.get("/api/policy")
-        setPolicies(res.data)
-      } catch (err) {
-        setPolicies([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchPolicies()
+    api.get("/api/policy")
+      .then(res => setPolicies(res.data))
+      .catch(() => setPolicies([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const filteredPolicies = useMemo(() => {
@@ -73,9 +66,8 @@ export default function MyPoliciesPage() {
   }, [policies, search, sortKey, sortAsc])
 
   const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortAsc(a => !a)
-    } else {
+    if (sortKey === key) setSortAsc(a => !a)
+    else {
       setSortKey(key)
       setSortAsc(true)
     }
@@ -87,7 +79,7 @@ export default function MyPoliciesPage() {
       await api.delete(`/api/policy/${id}`)
       setPolicies(policies => policies.filter(p => p._id !== id))
     } catch {
-      // Optionally show error
+      toast.error("Failed to delete policy")
     } finally {
       setDeletingId(null)
       setConfirmId(null)
@@ -95,26 +87,21 @@ export default function MyPoliciesPage() {
   }
 
   const handleView = async (policyId: string) => {
-    const url = `/api/policy/preview/${policyId}`;
-    // Open the tab immediately to avoid popup blockers
-    const newWindow = window.open("", "_blank");
+    const url = `/api/policy/preview/${policyId}`
+    const newWindow = window.open("", "_blank")
     try {
-      const res = await api.get(url, { responseType: "blob" });
-      const blob = new Blob([res.data], { type: "application/pdf" });
-      const blobUrl = window.URL.createObjectURL(blob);
+      const res = await api.get(url, { responseType: "blob" })
+      const blob = new Blob([res.data], { type: "application/pdf" })
+      const blobUrl = window.URL.createObjectURL(blob)
       if (newWindow) {
-        newWindow.location.href = blobUrl;
-        // Optionally revoke after some time
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+        newWindow.location.href = blobUrl
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000)
       }
-    } catch (err) {
-      if (newWindow) {
-        newWindow.close();
-      }
-      console.error('Error previewing template:', err);
-      toast.error("Failed to preview template");
+    } catch {
+      if (newWindow) newWindow.close()
+      toast.error("Failed to preview policy")
     }
-  };
+  }
 
   return (
     <div className="p-8 flex justify-center">
@@ -206,7 +193,7 @@ export default function MyPoliciesPage() {
                           {deletingId === policy._id ? "Deleting..." : "Delete"}
                         </Button>
                       </div>
-                      {/* Custom Confirm Modal */}
+                      {/* Confirm Modal */}
                       {confirmId === policy._id && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 relative">

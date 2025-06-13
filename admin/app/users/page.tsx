@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -18,14 +17,14 @@ import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, Plus, Search, Filter, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react"
 import api from "@/lib/api"
 
+const PAGE_SIZE = 10
+
 function getStatus(user: any) {
   if (user.status === 0) return "Pending"
   if (user.status === 2) return "Suspended"
   if (user.status === 1) return "Active"
   return user.isVerified ? "Active" : "Inactive"
 }
-
-const PAGE_SIZE = 10
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -38,24 +37,15 @@ export default function UsersPage() {
   const [page, setPage] = useState(1)
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await api.get("/api/admin/users")
-        setUsers(res.data)
-      } catch (err) {
-        setUsers([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchUsers()
+    api.get("/api/admin/users")
+      .then(res => setUsers(res.data))
+      .catch(() => setUsers([]))
+      .finally(() => setLoading(false))
   }, [])
 
-  // Filtering, searching, sorting, and pagination
   const filteredUsers = useMemo(() => {
     let filtered = users
 
-    // Search
     if (search.trim()) {
       const s = search.trim().toLowerCase()
       filtered = filtered.filter(
@@ -65,20 +55,14 @@ export default function UsersPage() {
       )
     }
 
-    // Role filter
     if (roleFilter !== "all") {
       filtered = filtered.filter(u => (roleFilter === "admin" ? u.isAdmin : !u.isAdmin))
     }
 
-    // Status filter
     if (statusFilter !== "all") {
-      filtered = filtered.filter(u => {
-        const status = getStatus(u).toLowerCase()
-        return status === statusFilter
-      })
+      filtered = filtered.filter(u => getStatus(u).toLowerCase() === statusFilter)
     }
 
-    // Sort
     filtered = [...filtered].sort((a, b) => {
       let aVal = a[sortKey]
       let bVal = b[sortKey]
@@ -105,33 +89,30 @@ export default function UsersPage() {
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE)
   const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  // Actions
   const handleChangeUserState = async (userId: string, status: number) => {
     try {
       await api.post("/api/admin/change-user-state", { userId, status })
-      setUsers((prev) =>
-        prev.map((user) => (user._id === userId ? { ...user, status } : user))
+      setUsers(prev =>
+        prev.map(user => (user._id === userId ? { ...user, status } : user))
       )
-    } catch (err) {
-      console.error(err)
-    }
+    } catch {}
   }
 
   const handleResetPassword = async (email: string) => {
     try {
       await api.post(`/api/admin/reset-password`, { email })
       alert("Password reset link sent to the user's email.")
-    } catch (err) {
-      console.error(err)
-    }
+    } catch {}
   }
 
-  // Table header with sort
-  const renderSortableHeader = (label: string, key: "name" | "createdAt" | "status" | "policies") => (
+  const renderSortableHeader = (
+    label: string,
+    key: "name" | "createdAt" | "status" | "policies"
+  ) => (
     <TableHead
       className="cursor-pointer select-none"
       onClick={() => {
-        if (sortKey === key) setSortAsc((asc) => !asc)
+        if (sortKey === key) setSortAsc(asc => !asc)
         else {
           setSortKey(key)
           setSortAsc(true)
@@ -183,8 +164,6 @@ export default function UsersPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[200px]">
-                  <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => {
                       setRoleFilter("all")
