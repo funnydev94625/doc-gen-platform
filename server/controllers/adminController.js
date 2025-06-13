@@ -128,6 +128,7 @@ exports.update_blank = async (req, res) => {
     if (ans_res !== undefined) update.ans_res = ans_res;
     if (section_id !== undefined) update.section_id = section_id;
     if (question !== undefined) update.question = question;
+    update.updated_at = Date.now();
 
     let blank;
     console.log(update)
