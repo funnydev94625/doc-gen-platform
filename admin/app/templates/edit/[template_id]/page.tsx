@@ -96,7 +96,7 @@ export default function TemplateEditPage() {
   // Handle ans_res change
   const handleAnsResChange = (idx: number, field: "answer" | "result", value: string) => {
     setAnsResList(list => {
-      const updated = list.map((ar, i) => i === idx ? { ...ar, [field]: value } : ar)
+      const updated = list.map((ar, i) => i === idx ? { 'answer': value, 'result': value } : ar)
       return updated
     })
     setAnsResDirty(true)
@@ -257,13 +257,7 @@ export default function TemplateEditPage() {
                     value={ar.answer}
                     placeholder="Answer"
                     onChange={e => handleAnsResChange(idx, "answer", e.target.value)}
-                    className="w-1/3"
-                  />
-                  <Input
-                    value={ar.result}
-                    placeholder="Result"
-                    onChange={e => handleAnsResChange(idx, "result", e.target.value)}
-                    className="w-1/2"
+                    className="w-2/3"
                   />
                   <Button
                     type="button"
