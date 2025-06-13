@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import api from "@/lib/api"
 import { Document, Page, pdfjs } from "react-pdf"
 import "react-pdf/dist/esm/Page/AnnotationLayer.css"
 import "react-pdf/dist/esm/Page/TextLayer.css"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 
@@ -55,6 +56,24 @@ export default function PolicyEditOrViewPage() {
     const [pageNumber, setPageNumber] = useState(1)
     const [showPreviewConfirm, setShowPreviewConfirm] = useState(false)
     const [pendingPreview, setPendingPreview] = useState(false)
+    const [defaultChecked, setDefaultChecked] = useState<{ [blankId: string]: boolean }>({})
+    const [message, setMessage] = useState<string | null>(null)
+    const [error, setError] = useState<string | null>(null)
+    const messageTimeout = useRef<NodeJS.Timeout | null>(null)
+
+    // Auto-hide messages after 55 seconds
+    useEffect(() => {
+        if (message || error) {
+            if (messageTimeout.current) clearTimeout(messageTimeout.current)
+            messageTimeout.current = setTimeout(() => {
+                setMessage(null)
+                setError(null)
+            }, 5000)
+        }
+        return () => {
+            if (messageTimeout.current) clearTimeout(messageTimeout.current)
+        }
+    }, [message, error])
 
     useEffect(() => {
         const fetchPolicy = async () => {
@@ -67,26 +86,30 @@ export default function PolicyEditOrViewPage() {
             setSelectedSection(firstSection?._id || null)
             setBlankStep(0)
             const blanks = data.sections.map((s: Section) => s.blanks).flat()
-            setAnswers(
-                blanks
-                    .filter((b: Blank): b is Blank & { ans_res: AnsRes[] } => !!b.answer)
-                    .map(
-                        (blank: Blank & { ans_res: AnsRes[] }): { blank_id: string; answer: string } => ({
-                            blank_id: blank._id,
-                            answer: blank.answer,
-                        })
-                    )
-            )
-            console.log(
-                blanks
-                    .filter((b: Blank): b is Blank & { ans_res: AnsRes[] } => !!b.answer)
-                    .map(
-                        (blank: Blank & { ans_res: AnsRes[] }): { blank_id: string; answer: string } => ({
-                            blank_id: blank._id,
-                            answer: blank.answer,
-                        })
-                    )
-            )
+            const userAnswers = data.userAnswers || []
+
+            // Prepare answers: use blank.answer if exists, otherwise use userAnswers by question
+            // If using userAnswers, mark checked = true
+            const answersArr: { blank_id: string; answer: string; checked?: boolean }[] = blanks
+            .filter((blank: Blank) => blank.answer || userAnswers.find((ua: any) => ua.question === blank.question))
+            .map((blank: Blank) => {
+                if (blank.answer) {
+                    return { blank_id: blank._id, answer: blank.answer }
+                }
+                // Try to find userAnswer by question
+                const userAns = userAnswers.find((ua: any) => ua.question === blank.question)
+                if (userAns) {
+                    return { blank_id: blank._id, answer: userAns.answer, checked: true }
+                }
+                // return { blank_id: blank._id, answer: "" }
+            })
+            setAnswers(answersArr)
+            // Set defaultChecked state for checkboxes
+            const checkedMap: { [blankId: string]: boolean } = {}
+            answersArr.forEach(ans => {
+                if (ans.checked) checkedMap[ans.blank_id] = true
+            })
+            setDefaultChecked(checkedMap)
             setLoading(false)
         }
         fetchPolicy()
@@ -120,8 +143,6 @@ export default function PolicyEditOrViewPage() {
 
     // Find current answer value from answers state
     const getCurrentAnswer = () => {
-        console.log(answers)
-        console.log(allBlanks)
         const found = answers.find(a => a.blank_id === currentBlank?._id)
         return found ? found.answer : ""
     }
@@ -160,11 +181,17 @@ export default function PolicyEditOrViewPage() {
     // Save handler
     const handleSave = async () => {
         setSaving(true)
+        setMessage(null)
+        setError(null)
+        const payload = answers.map(ans => ({
+            ...ans,
+            isDefault: defaultChecked[ans.blank_id]
+        }))
         try {
-            await api.put(`/api/policy/${id}`, { answers })
-            // Optionally, refetch or show a success message
+            await api.put(`/api/policy/${id}`, { answers: payload })
+            setMessage("Answers saved successfully.")
         } catch (err) {
-            // Optionally, show error
+            setError("Failed to save answers.")
         }
         setSaving(false)
     }
@@ -214,12 +241,17 @@ export default function PolicyEditOrViewPage() {
     }
 
     const handlePreview = async (policyId: string, saveFirst = false) => {
+        setMessage(null)
+        setError(null)
         if (saveFirst) {
             setSaving(true)
             try {
                 await api.put(`/api/policy/${id}`, { answers })
+                setMessage("Answers saved. Generating preview...")
             } catch (err) {
-                // Optionally, show error
+                setError("Failed to save answers before preview.")
+                setSaving(false)
+                return
             }
             setSaving(false)
         }
@@ -233,9 +265,10 @@ export default function PolicyEditOrViewPage() {
                 newWindow.location.href = blobUrl;
                 setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
             }
+            setMessage("Preview generated.");
         } catch (err) {
             if (newWindow) newWindow.close();
-            console.error('Error previewing template:', err);
+            setError("Failed to generate preview.");
         }
     };
 
@@ -257,6 +290,15 @@ export default function PolicyEditOrViewPage() {
         // cancel does nothing
     }
 
+    // Checkbox change handler
+    const handleDefaultCheckbox = (checked: boolean) => {
+        if (!currentBlank) return
+        setDefaultChecked(prev => ({
+            ...prev,
+            [currentBlank._id]: checked
+        }))
+    }
+
     return (
         <div className="flex flex-col w-full min-h-[100vh] gap-4 p-4">
             {/* Header */}
@@ -268,6 +310,16 @@ export default function PolicyEditOrViewPage() {
                     {saving ? "Saving..." : "Save"}
                 </Button>
             </div>
+            {message && (
+                <div className="w-full flex justify-center mt-2">
+                    <span className="text-green-600 font-medium">{message}</span>
+                </div>
+            )}
+            {error && (
+                <div className="w-full flex justify-center mt-2">
+                    <span className="text-red-600 font-medium">{error}</span>
+                </div>
+            )}
             <div className="flex w-full flex-1 gap-4">
                 {/* Left: Section List */}
                 <div className="w-[30%] border rounded-lg p-4 bg-white flex flex-col justify-between">
@@ -327,11 +379,26 @@ export default function PolicyEditOrViewPage() {
                                         ))}
                                     </select>
                                 ) : (
-                                    <Input
-                                        value={getCurrentAnswer()}
-                                        onChange={handleInputChange}
-                                        placeholder="Your answer..."
-                                    />
+                                    <>
+                                        <Input
+                                            value={getCurrentAnswer()}
+                                            onChange={handleInputChange}
+                                            placeholder="Your answer..."
+                                        />
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div /> {/* Empty div to push checkbox to the right */}
+                                            <div className="flex items-center gap-2">
+                                                <Checkbox
+                                                    id="default-answer"
+                                                    checked={!!defaultChecked[currentBlank?._id]}
+                                                    onCheckedChange={handleDefaultCheckbox}
+                                                />
+                                                <label htmlFor="default-answer" className="text-sm">
+                                                    Use as a default answer for this question
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                             <div className="flex justify-between mt-4">
