@@ -270,3 +270,27 @@ exports.resendVerification = async (req, res) => {
     res.status(500).json({ msg: "Failed to resend verification email." });
   }
 };
+
+// authController.js
+exports.googlelogin = async (req, res) => {
+  try {
+    console.log(req.body, req.params)
+    const { email, name } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (!user) {
+      // If not, create a new user
+      user = new User({ email, name });
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '5d' });
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
