@@ -5,9 +5,27 @@ import Image from "next/image"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
+import { useState, useRef, useEffect } from "react"
 
 export default function Header() {
   const { user, logout, isAuthenticated } = useAuth()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [dropdownOpen])
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
@@ -45,11 +63,33 @@ export default function Header() {
           
           {isAuthenticated ? (
             <>
-              {/* <Link href={user?.isAdmin ? "/admin" : "/dashboard"}> */}
-                <Button variant="ghost" size="sm">
+              <div className="relative" ref={dropdownRef}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDropdownOpen((open) => !open)}
+                >
                   {user?.name || "Dashboard"}
                 </Button>
-              {/* </Link> */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
+                    <Link
+                      href="/policies/mine"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      My Policies
+                    </Link>
+                    <Link
+                      href="/user/settings"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      User Settings
+                    </Link>
+                  </div>
+                )}
+              </div>
               <Button variant="outline" size="sm" onClick={logout}>
                 Sign out
               </Button>

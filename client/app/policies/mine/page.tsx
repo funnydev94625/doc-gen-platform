@@ -115,6 +115,14 @@ export default function MyPoliciesPage() {
             onChange={e => setSearch(e.target.value)}
             className="w-80"
           />
+          <Button
+            className="ml-4"
+            onClick={() => router.push("/policies")}
+            variant="default"
+            size="sm"
+          >
+            + Create Policy
+          </Button>
         </div>
         <div className="overflow-x-auto">
           <Table>
