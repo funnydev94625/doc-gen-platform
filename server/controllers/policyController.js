@@ -175,6 +175,35 @@ exports.delete_policy = async (req, res) => {
   }
 };
 
+exports.toggle_favorite = async (req, res) => {
+  try {
+    const policy_id = req.params.policy_id;
+    const policy = await Policy.findById(policy_id);
+    
+    if (!policy) {
+      return res.status(404).json({ error: "Policy not found" });
+    }
+
+    // Check if policy belongs to user
+    if (policy.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    // Toggle favorite status
+    policy.is_favorite = !policy.is_favorite;
+    policy.updated_at = Date.now();
+    await policy.save();
+
+    res.json({ 
+      message: `Policy ${policy.is_favorite ? 'added to' : 'removed from'} favorites`,
+      is_favorite: policy.is_favorite 
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
 exports.preview_policy = async (req, res) => {
   try {
     const { policy_id } = req.params;

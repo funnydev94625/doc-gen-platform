@@ -20,6 +20,10 @@ const PolicySchema = new Schema({
     type: Date,
     default: Date.now
   },
+  is_favorite: {
+    type: Boolean,
+    default: false
+  },
 });
 
 module.exports = mongoose.model('Policy', PolicySchema);

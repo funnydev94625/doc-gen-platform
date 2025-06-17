@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Pencil, Eye, ArrowUp, ArrowDown, Trash2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Pencil, Eye, ArrowUp, ArrowDown, Trash2, ChevronLeft, ChevronRight, Heart } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
@@ -17,9 +18,12 @@ type Policy = {
   updated_at: string
   template_title: string
   template_description: string
+  is_favorite: boolean
 }
 
 type SortKey = keyof Pick<Policy, "template_title" | "template_description" | "created_at" | "updated_at">
+
+const ITEMS_PER_PAGE = 7
 
 export default function MyPoliciesPage() {
   const [policies, setPolicies] = useState<Policy[]>([])
@@ -29,6 +33,9 @@ export default function MyPoliciesPage() {
   const [sortAsc, setSortAsc] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [activeTab, setActiveTab] = useState<"all" | "favorites">("all")
+  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -38,8 +45,20 @@ export default function MyPoliciesPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filteredPolicies = useMemo(() => {
+  // Reset to page 1 when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, activeTab])
+
+  const { paginatedPolicies, totalPages, totalItems } = useMemo(() => {
     let filtered = policies
+    
+    // Filter by tab (all or favorites)
+    if (activeTab === "favorites") {
+      filtered = filtered.filter(p => p.is_favorite)
+    }
+    
+    // Filter by search
     if (search.trim()) {
       const s = search.trim().toLowerCase()
       filtered = filtered.filter(
@@ -62,8 +81,15 @@ export default function MyPoliciesPage() {
       if (aVal > bVal) return sortAsc ? 1 : -1
       return 0
     })
-    return filtered
-  }, [policies, search, sortKey, sortAsc])
+
+    const totalItems = filtered.length
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    const paginatedPolicies = filtered.slice(startIndex, endIndex)
+
+    return { paginatedPolicies, totalPages, totalItems }
+  }, [policies, search, sortKey, sortAsc, currentPage, activeTab])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(a => !a)
@@ -71,6 +97,7 @@ export default function MyPoliciesPage() {
       setSortKey(key)
       setSortAsc(true)
     }
+    setCurrentPage(1) // Reset to page 1 when sorting changes
   }
 
   const handleDelete = async (id: string) => {
@@ -103,28 +130,171 @@ export default function MyPoliciesPage() {
     }
   }
 
+  const handleFavoriteToggle = async (policyId: string) => {
+    setFavoriteLoading(policyId)
+    try {
+      const response = await api.put(`/api/policy/${policyId}/favorite`)
+      const { is_favorite } = response.data
+      
+      // Update the policy in state
+      setPolicies(prevPolicies => 
+        prevPolicies.map(policy => 
+          policy._id === policyId 
+            ? { ...policy, is_favorite }
+            : policy
+        )
+      )
+      
+      toast.success(is_favorite ? "Added to favorites" : "Removed from favorites")
+    } catch {
+      toast.error("Failed to update favorite status")
+    } finally {
+      setFavoriteLoading(null)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const renderPaginationButtons = () => {
+    const buttons = []
+    const maxVisiblePages = 5
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    // Previous button
+    buttons.push(
+      <Button
+        key="prev"
+        variant="outline"
+        size="sm"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="mr-1"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </Button>
+    )
+
+    // First page and ellipsis if needed
+    if (startPage > 1) {
+      buttons.push(
+        <Button
+          key={1}
+          variant={currentPage === 1 ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePageChange(1)}
+          className="mr-1"
+        >
+          1
+        </Button>
+      )
+      if (startPage > 2) {
+        buttons.push(
+          <span key="start-ellipsis" className="px-2 text-gray-500">...</span>
+        )
+      }
+    }
+
+    // Page buttons
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <Button
+          key={i}
+          variant={currentPage === i ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePageChange(i)}
+          className="mr-1"
+        >
+          {i}
+        </Button>
+      )
+    }
+
+    // Last page and ellipsis if needed
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        buttons.push(
+          <span key="end-ellipsis" className="px-2 text-gray-500">...</span>
+        )
+      }
+      buttons.push(
+        <Button
+          key={totalPages}
+          variant={currentPage === totalPages ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePageChange(totalPages)}
+          className="mr-1"
+        >
+          {totalPages}
+        </Button>
+      )
+    }
+
+    // Next button
+    buttons.push(
+      <Button
+        key="next"
+        variant="outline"
+        size="sm"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        <ChevronRight className="w-4 h-4" />
+      </Button>
+    )
+
+    return buttons
+  }
+
   return (
     <div className="p-8 flex justify-center">
       <div className="w-[70%]">
         <h1 className="text-2xl font-bold mb-6">My Policies</h1>
-        <div className="flex items-center justify-between mb-4">
-          <Input
-            type="search"
-            placeholder="Search by template title or description..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-80"
-          />
-          <Button
-            className="ml-4"
-            onClick={() => router.push("/policies")}
-            variant="default"
-            size="sm"
-          >
-            + Create Policy
-          </Button>
-        </div>
-        <div className="overflow-x-auto">
+        
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "all" | "favorites")} className="w-full">
+          <div className="flex items-center justify-between mb-4">
+            <TabsList className="grid w-auto grid-cols-2">
+              <TabsTrigger value="all">All Policies</TabsTrigger>
+              <TabsTrigger value="favorites">Favorites</TabsTrigger>
+            </TabsList>
+            <Button
+              onClick={() => router.push("/policies")}
+              variant="default"
+              size="sm"
+            >
+              + Create Policy
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <Input
+              type="search"
+              placeholder="Search by template title or description..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-80"
+            />
+          </div>
+
+          <TabsContent value={activeTab} className="mt-4">
+            {/* Results summary */}
+            {!loading && (
+              <div className="mb-4 text-sm text-gray-600">
+                Showing {paginatedPolicies.length} of {totalItems} {activeTab === "favorites" ? "favorite " : ""}policies
+                {totalItems > 0 && totalPages > 1 && (
+                  <span> (Page {currentPage} of {totalPages})</span>
+                )}
+              </div>
+            )}
+
+            <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -164,15 +334,22 @@ export default function MyPoliciesPage() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">Loading...</TableCell>
                 </TableRow>
-              ) : filteredPolicies.length === 0 ? (
+              ) : paginatedPolicies.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No policies found.</TableCell>
+                  <TableCell colSpan={5} className="text-center">
+                    {activeTab === "favorites" ? "No favorite policies found." : "No policies found."}
+                  </TableCell>
                 </TableRow>
               ) : (
-                filteredPolicies.map(policy => (
+                paginatedPolicies.map(policy => (
                   <TableRow key={policy._id}>
                     <TableCell>{policy.template_title}</TableCell>
-                    <TableCell>{policy.template_description}</TableCell>
+                    <TableCell>
+                      {policy.template_description.length > 100 
+                        ? `${policy.template_description.substring(0, 100)}...`
+                        : policy.template_description
+                      }
+                    </TableCell>
                     <TableCell>{new Date(policy.created_at).toLocaleString()}</TableCell>
                     <TableCell>{new Date(policy.updated_at).toLocaleString()}</TableCell>
                     <TableCell>
@@ -190,6 +367,15 @@ export default function MyPoliciesPage() {
                           onClick={() => handleView(policy._id)}
                         >
                           <Eye className="w-4 h-4 mr-1" /> View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={policy.is_favorite ? "default" : "outline"}
+                          onClick={() => handleFavoriteToggle(policy._id)}
+                          disabled={favoriteLoading === policy._id}
+                        >
+                          <Heart className={`w-4 h-4 mr-1 ${policy.is_favorite ? 'fill-current' : ''}`} />
+                          {favoriteLoading === policy._id ? "..." : (policy.is_favorite ? "Favorited" : "Favorite")}
                         </Button>
                         <Button
                           size="sm"
@@ -229,6 +415,15 @@ export default function MyPoliciesPage() {
             </TableBody>
           </Table>
         </div>
+
+            {/* Pagination Controls */}
+            {!loading && totalPages > 1 && (
+              <div className="flex items-center justify-center mt-6 space-x-1">
+                {renderPaginationButtons()}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

@@ -18,6 +18,8 @@ router.put("/:policy_id", [auth], policyController.update_policy);
 
 router.delete("/:policy_id", [auth], policyController.delete_policy);
 
+router.put("/:policy_id/favorite", [auth], policyController.toggle_favorite);
+
 router.get("/preview/:policy_id", [auth], policyController.preview_policy);
 
 module.exports = router;
