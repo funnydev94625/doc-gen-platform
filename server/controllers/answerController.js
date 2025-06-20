@@ -1,62 +1,101 @@
-const Answer = require('../models/Answer');
-const Element = require('../models/Element');
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId;
+const Common = require('../models/Common');
+const Blank = require('../models/Blank');
 
-exports.create_answer = async (req, res) => {
-    try {
-        const { policy_id, answers } = req.body;
-        const answerPromises = answers.map(async answer => {
-            const element = await Element.findById(answer.element_id);
-            if (!element) {
-                throw new Error(`Element not found for id ${answer.element_id}`);
-            }
-            const newAnswer = new Answer({
-                element_id: answer.element_id,
-                policy_id,
-                answer: answer.answer,
-                user_id: req.user.id
-            });
-            return newAnswer.save();
-        });
-        const answersCreated = await Promise.all(answerPromises);
-        res.json(answersCreated);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+// Create Common
+exports.createCommon = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const data = req.body; // expects an array of objects
 
-exports.get_answers = async (req, res) => {
-    try {
-        const { policy_id } = req.params;
-        const answers = await Answer.find({ policy_id, user_id: req.user.id });
-        res.json(answers);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+    if (!Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({ error: "Request body must be a non-empty array." });
     }
-}
 
-exports.update_answers = async (req, res) => {
-    try {
-        const { policy_id, answers } = req.body;
-        const answerPromises = answers.map(async answer => {
-            const element = await Element.findById(answer.element_id);
-            if (!element) {
-                throw new Error(`Element not found for id ${answer.element_id}`);
-            }
-            const updatedAnswer = await Answer.findOneAndUpdate(
-                { policy_id, element_id: answer.element_id, user_id: req.user.id },
-                { answer: answer.answer },
-                { new: true, upsert: true }
-            );
-            return updatedAnswer;
-        });
-        const answersUpdated = await Promise.all(answerPromises);
-        res.json(answersUpdated);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+    // Attach user_id to every element
+    const dataWithUser = data.map(item => ({
+      ...item,
+      user_id,
+    }));
+
+    // Find all existing commons for this user
+    const existingCommons = await Common.find({ user_id });
+    const existingMap = new Map(existingCommons.map(c => [String(c.blank_id), c]));
+
+    const results = [];
+    for (const item of dataWithUser) {
+      const filter = { blank_id: item.blank_id, user_id };
+      const update = { $set: { ...item, updated_at: new Date() } };
+      const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+      const updated = await Common.findOneAndUpdate(filter, update, options);
+      results.push(updated);
     }
-}
+
+    res.status(201).json(results);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Update Common
+exports.updateCommon = async (req, res) => {
+  try {
+    const dataArray = req.body; // expects an array of objects
+    if (!Array.isArray(dataArray) || dataArray.length === 0) {
+      return res.status(400).json({ error: "Request body must be a non-empty array." });
+    }
+
+    const { user_id } = req.user.id;
+    if (!user_id) {
+      return res.status(400).json({ error: "User ID is required." });
+    }
+    // Remove all existing commons for this user_id
+    await Common.deleteMany({ user_id });
+
+    // Insert the new/updated commons
+    const inserted = await Common.insertMany(dataArray);
+
+    res.json(inserted);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get all Common elements and add question field from Blank
+exports.getCommon = async (req, res) => {
+  try {
+    const filter = {};
+    if (req.params?.id) {
+      filter.user_id = req.params.id;
+    }
+
+    const commonsWithQuestion = await Common.find(filter);
+    // Use aggregate to join Common with Blank and add question field
+    // const commonsWithQuestion = await Common.aggregate([
+    //   { $match: filter },
+    //   {
+    //     $lookup: {
+    //       from: 'blanks', // collection name in MongoDB (usually plural, lowercase)
+    //       localField: 'blank_id',
+    //       foreignField: '_id',
+    //       as: 'blankInfo'
+    //     }
+    //   },
+    //   // {
+    //   //   $addFields: {
+    //   //     question: { $arrayElemAt: ['$blankInfo.question', 0] }
+    //   //   }
+    //   // },
+    //   // {
+    //   //   $project: {
+    //   //     blankInfo: 0 // remove the joined array
+    //   //   }
+    //   // }
+    // ]);
+
+    res.json(commonsWithQuestion);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

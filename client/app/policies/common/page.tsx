@@ -1,96 +1,215 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
-export default function CommonPolicyPage() {
-	const [questions, setQuestions] = useState<any[]>([]);
-	const [currentIdx, setCurrentIdx] = useState(0);
+type AnsRes = { answer: string };
+type Blank = {
+  _id: string;
+  question: string;
+  ans_res?: { answers: AnsRes[] };
+  answer?: string;
+  placeholder?: string;
+  isCommon?: boolean;
+};
+type Common = {
+  blank_id: string;
+  answer: string;
+  isDefault?: boolean;
+};
 
-	useEffect(() => {
-		api.get("/api/commonBlank").then((res) => {
-			// Filter for isCommon === true if not already filtered by backend
-			const blanks = Array.isArray(res.data)
-				? res.data.filter((b: any) => b.isCommon)
-				: [];
-			setQuestions(blanks);
-		});
-	}, []);
+export default function CommonBlanksPage() {
+  const [blanks, setBlanks] = useState<Blank[]>([]);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Common[]>([]);
+  const [defaultChecked, setDefaultChecked] = useState<{
+    [blankId: string]: boolean;
+  }>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const { user, setUser } = useAuth();
+  const router = useRouter()
 
-	const currentQuestion = questions[currentIdx];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      // Get blanks
+      const blanksRes = await api.get("/api/commonBlank");
+      const blanksData: Blank[] = blanksRes.data.filter(
+        (b: Blank) => b.isCommon
+      );
+      setBlanks(blanksData);
+      // Get initial common answers
+      const commonsRes = await api.get(`/api/policy/common/${user?.id}`);
+      const commons: Common[] = commonsRes.data;
+      setAnswers(commons);
+      // Set defaultChecked from commons
+      const defaultMap: { [blankId: string]: boolean } = {};
+      commons.forEach((c) => {
+        if (c.isDefault) defaultMap[c.blank_id] = true;
+      });
+      setDefaultChecked(defaultMap);
+      setLoading(false);
+    };
+    if (user?.id) fetchData();
+  }, [user]);
 
-	const handleAnswerChange = (val: string) => {
-		setQuestions((prev) =>
-			prev.map((q, idx) => (idx === currentIdx ? { ...q, answer: val } : q))
-		);
-	};
+  const currentBlank = blanks[step];
 
-	const handleDefaultChange = (checked: boolean) => {
-		setQuestions((prev) =>
-			prev.map((q, idx) => (idx === currentIdx ? { ...q, isDefault: checked } : q))
-		);
-	};
+  const getCurrentAnswer = () => {
+    const found = answers.find((a) => a.blank_id === currentBlank?._id);
+    return found ? found.answer : "";
+  };
 
-	const handlePrev = () => {
-		if (currentIdx > 0) setCurrentIdx((i) => i - 1);
-	};
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!currentBlank) return;
+    setAnswers((prev) => {
+      const others = prev.filter((a) => a.blank_id !== currentBlank._id);
+      return [
+        ...others,
+        {
+          blank_id: currentBlank._id,
+          answer: val,
+          isDefault: defaultChecked[currentBlank._id],
+        },
+      ];
+    });
+  };
 
-	const handleNext = () => {
-		if (currentIdx < questions.length - 1) setCurrentIdx((i) => i + 1);
-	};
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedAnswer = e.target.value;
+    if (!currentBlank) return;
+    setAnswers((prev) => {
+      const others = prev.filter((a) => a.blank_id !== currentBlank._id);
+      return [
+        ...others,
+        {
+          blank_id: currentBlank._id,
+          answer: selectedAnswer,
+          isDefault: defaultChecked[currentBlank._id],
+        },
+      ];
+    });
+  };
 
-	if (!questions.length || !currentQuestion) {
-		return <div className="p-8 text-center">Loading...</div>;
-	}
+  const handleDefaultCheckbox = (checked: boolean) => {
+    if (!currentBlank) return;
+    setDefaultChecked((prev) => ({
+      ...prev,
+      [currentBlank._id]: checked,
+    }));
+    setAnswers((prev) =>
+      prev.map((a) =>
+        a.blank_id === currentBlank._id ? { ...a, isDefault: checked } : a
+      )
+    );
+  };
 
-	return (
-		<div className="flex flex-col w-full min-h-[50vh] gap-4 relative items-center justify-cente mb-8 mt-8">
-			<div className="flex gap-4 flex-1 w-full max-w-2xl justify-center">
-				{/* Question Area */}
-				<div className="flex-1 border rounded-lg p-8 bg-white min-h-[70vh]">
-					<div className="mb-2 font-semibold">
-						Question {currentIdx + 1} of {questions.length}
-					</div>
-					<div className="mb-3 text-lg font-bold">
-						{currentQuestion.question}
-					</div>
-					<Input
-						value={currentQuestion.answer || ""}
-						onChange={(e) => handleAnswerChange(e.target.value)}
-						className="mb-2"
-					/>
-					<div className="flex justify-between mt-4">
-						<Button
-							variant="outline"
-							disabled={currentIdx === 0}
-							onClick={handlePrev}
-						>
-							Prev
-						</Button>
-						{currentIdx === questions.length - 1 ? (
-							<Button
-								className="bg-blue-600 text-white"
-								disabled={!currentQuestion.answer || currentQuestion.answer.trim() === ""}
-							>
-								Save
-							</Button>
-						) : (
-							<Button
-								onClick={handleNext}
-								disabled={
-									currentIdx === questions.length - 1 ||
-									!currentQuestion.answer ||
-									currentQuestion.answer.trim() === ""
-								}
-							>
-								Next
-							</Button>
-						)}
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  const handlePrev = () => setStep((s) => Math.max(0, s - 1));
+  const handleNext = () => setStep((s) => Math.min(blanks.length - 1, s + 1));
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const payload = answers
+        .filter(
+          (a) => a.blank_id && a.answer !== undefined && a.answer !== null
+        )
+        .map((a) => ({
+          blank_id: a.blank_id,
+          answer: a.answer,
+          isDefault: a.isDefault,
+        }));
+      await api.post("/api/policy/common/create", payload);
+      setMessage("Answers saved successfully.");
+      setUser((prev: any) => ({
+        ...prev,
+        commonExist: true, // Update user state to reflect common questions answered
+      }));
+      router.push("/policies");
+    } catch(error) {
+      console.log(error)
+      setMessage("Failed to save answers.");
+    }
+    setSaving(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <span className="text-lg font-semibold">Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col w-full gap-4 p-4 items-center">
+      {message && (
+        <div className="w-full flex justify-center mt-2">
+          <span className="text-green-600 font-medium">{message}</span>
+        </div>
+      )}
+      <div className="w-full max-w-2xl border rounded-lg p-8 bg-white flex flex-col gap-6 mt-8">
+        <div className="flex flex-col gap-2">
+          <div className="text-base font-semibold mb-1">
+            Question {step + 1} of {blanks.length}
+          </div>
+          <div className="text-lg font-bold mb-2">{currentBlank?.question}</div>
+          {currentBlank?.ans_res &&
+          currentBlank.ans_res.answers &&
+          currentBlank.ans_res.answers.length > 0 ? (
+            <select
+              className="border rounded px-3 py-2"
+              value={getCurrentAnswer()}
+              onChange={handleSelectChange}
+            >
+              <option value="">Select an answer</option>
+              {currentBlank.ans_res.answers.map((opt, idx) => (
+                <option key={idx} value={opt.answer}>
+                  {opt.answer}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <Input
+                value={getCurrentAnswer()}
+                onChange={handleInputChange}
+                placeholder="Your answer..."
+              />
+            </>
+          )}
+        </div>
+        <div className="flex justify-between mt-4">
+          <Button variant="outline" onClick={handlePrev} disabled={step === 0}>
+            Prev
+          </Button>
+          {step === blanks.length - 1 ? (
+            <Button
+              onClick={handleSave}
+              disabled={saving || getCurrentAnswer() === ""}
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={handleNext}
+              disabled={getCurrentAnswer() === ""}
+            >
+              Next
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

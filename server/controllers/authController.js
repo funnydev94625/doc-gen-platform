@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const { validationResult } = require("express-validator");
+const Common = require("../models/Common");
 
 const sendEmail = async (email, verificationToken) => {
   const transporter = nodemailer.createTransport({
@@ -118,13 +119,14 @@ exports.login = async (req, res) => {
         isAdmin: user.isAdmin
       }
     };
+    const exist = await Common.find({user_id: user.id})
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
       { expiresIn: '5d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ name: user.name, email: user.email, token: token, isAdmin: user.isAdmin });
+        res.json({ id: user.id, name: user.name, email: user.email, token: token, isAdmin: user.isAdmin, commonExist: exist.length > 0, organization: user.organization });
       }
     );
   } catch (err) {

@@ -18,4 +18,10 @@ router.delete('/policy/:policy_id/element/:element_id', auth, answerController.d
 // Delete all answers for a policy
 router.delete('/policy/:policy_id', auth, answerController.deleteAllAnswers);
 
-module.exports = router; 
+// Create Common (single or multiple)
+router.post('/common', answerController.createCommon);
+
+// Update Common by ID
+router.put('/common', answerController.updateCommon);
+
+module.exports = router;

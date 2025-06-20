@@ -18,9 +18,12 @@ api.interceptors.request.use((config) => {
 })
 
 type User = {
+  id: string,
   name: string
   email: string
-  isAdmin: boolean
+  isAdmin: boolean,
+  commonExist: boolean,
+  organization: string
 }
 
 type UserData = {
@@ -118,9 +121,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Create user object from response
       const userData = {
+        id: data.id,
         name: data.name,
         email: data.email,
-        isAdmin: data.isAdmin
+        isAdmin: data.isAdmin,
+        commonExist: data.commonExist,
+        organization: data.organization || ""
       }
 
       // Update state and localStorage
@@ -167,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
+    setUser
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

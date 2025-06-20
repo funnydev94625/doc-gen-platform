@@ -43,6 +43,12 @@ export default function PoliciesPage() {
 
     const handleCreatePolicy = async (templateId: string) => {
         try {
+            if(!user?.commonExist)
+            {
+                toast.error("Please complete the Common Question first")
+                router.push('/policies/common')
+                return
+            }
             setIsCreating(prev => ({ ...prev, [templateId]: true }))
             const response = await api.post('/api/policy', { template_id: templateId })
             toast.success("Successfully created Policy")
