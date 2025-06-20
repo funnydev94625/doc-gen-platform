@@ -207,15 +207,17 @@ export default function TemplateEditPage() {
         {/* 1st div: Blank List */}
         <div className="w-[30%] border rounded-lg p-4 bg-white flex flex-col gap-2">
           <h2 className="font-bold mb-2">Blanks</h2>
-          {blanks.map(blank => (
-            <div
-              key={blank._id}
-              className={`p-2 rounded cursor-pointer ${selectedBlankId === blank._id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"} ${ansResDirty ? "pointer-events-none opacity-60" : ""}`}
-              onClick={() => handleBlankClick(blank._id)}
-            >
-              {formatQuestion(blank.placeholder)}
-            </div>
-          ))}
+          <div className="flex flex-col gap-2 max-h-[calc(100vh-15rem)] overflow-y-auto">
+            {blanks.map(blank => (
+              <div
+                key={blank._id}
+                className={`p-2 rounded cursor-pointer ${selectedBlankId === blank._id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"} ${ansResDirty ? "pointer-events-none opacity-60" : ""}`}
+                onClick={() => handleBlankClick(blank._id)}
+              >
+                {formatQuestion(blank.placeholder)}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 2nd div: Blank Detail */}

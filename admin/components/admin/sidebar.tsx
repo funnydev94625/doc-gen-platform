@@ -18,6 +18,7 @@ export default function AdminSidebar() {
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/users", icon: Users, label: "Users" },
     { href: "/templates", icon: Folder, label: "Templates" }, // Added Templates
+    { href: "/commons", icon: FileText, label: "Commons" },
     { href: "/sales", icon: ShoppingCart, label: "Sales" },
     { href: "/settings", icon: Settings, label: "Settings" },
   ]

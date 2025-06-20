@@ -4,7 +4,7 @@ const BlankSchema = mongoose.Schema({
   template_id: {
     type: mongoose.Types.ObjectId,
     ref: "Template",
-    required: true,
+    // required: true,
   },
   placeholder: {
     type: String,
@@ -33,6 +33,11 @@ const BlankSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isCommon: {
+    type: Boolean,
+    default: false,
+    required: true
+  }
 });
 
 module.exports = mongoose.model("Blank", BlankSchema);

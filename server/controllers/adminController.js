@@ -15,7 +15,13 @@ async function extractBlanksFromDocx(filePath) {
   const matches = [...value.matchAll(/\$\{([^\}]+)\}/g)];
   // Use a Set to filter out duplicates
   const uniqueWords = Array.from(new Set(matches.map((m) => m[1])));
-  return uniqueWords;
+
+  // Filter out matches that already exist as a common blank
+  const commonBlanks = await Blank.find({ isCommon: true });
+  const commonPlaceholders = new Set(commonBlanks.map(b => b.placeholder));
+  const filteredMatches = uniqueWords.filter(element => !commonPlaceholders.has(element));
+
+  return filteredMatches;
 }
 
 exports.create_template = async (req, res) => {
@@ -25,6 +31,13 @@ exports.create_template = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "No docx file uploaded" });
     }
+
+    // Check if a template with the same title already exists
+    const existing = await Template.findOne({ title });
+    if (existing) {
+      return res.status(400).json({ error: "A template with this title already exists." });
+    }
+
     const template = new Template({
       title,
       description,
@@ -39,14 +52,17 @@ exports.create_template = async (req, res) => {
       blanks.map((word) => ({
         template_id: template._id,
         placeholder: word,
-        question: ""
+        question: "",
+        isCommon: false
       }))
     );
 
     res.json(template);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ error: "Title must be unique." });
+    }
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -109,7 +125,7 @@ exports.delete_template = async (req, res) => {
 exports.get_blanks = async (req, res) => {
   try {
     const { template_id } = req.params;
-    const blanks = await Blank.find({ template_id });
+    const blanks = await Blank.find({ template_id, isCommon: false });
     res.json(blanks);
   } catch (err) {
     console.error(err.message);
