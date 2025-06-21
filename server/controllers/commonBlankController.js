@@ -3,20 +3,19 @@ const Blank = require('../models/Blank');
 // Create multiple Common Blanks from array
 exports.createCommonBlank = async (req, res) => {
   try {
-    const blanksData = Array.isArray(req.body) ? req.body : [];
-    if (!blanksData.length) {
-      return res.status(400).json({ error: 'Request body must be a non-empty array.' });
-    }
-    // Each object should have {placeholder, answer}
-    const blanks = await Blank.insertMany(
-      blanksData.map(({ question, placeholder, ans_res }) => ({
-        placeholder,
-        question,
-        ans_res,
-        isCommon: true
-      }))
-    );
-    res.status(201).json(blanks);
+    // Accepts a single object or an array of objects
+    const data = Array.isArray(req.body) ? req.body : [req.body];
+
+    // Ensure each blank has isCommon: true
+    const blanksToCreate = data.map(item => ({
+      ...item,
+      isCommon: true,
+    }));
+
+    // Create all blanks
+    const created = await Blank.insertMany(blanksToCreate);
+
+    res.status(201).json(Array.isArray(req.body) ? created : created[0]);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
