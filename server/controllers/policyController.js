@@ -226,10 +226,22 @@ exports.preview_policy = async (req, res) => {
     // 4. Get all answers for this policy
     // Run both queries in parallel for speed
     const [blanks, answers] = await Promise.all([
-      Blank.find({ template_id: template._id }),
-      Answer.find({ policy_id }),
+      // Find blanks where template_id matches OR template_id does not exist
+      Blank.find({
+        $or: [
+          { template_id: template._id },
+          { template_id: { $exists: false } }
+        ]
+      }),
+      // Find answers where policy_id matches OR user_id matches
+      Answer.find({
+        $or: [
+          { policy_id },
+          { user_id: req.user.id }
+        ]
+      }),
     ]);
-
+    console.log(blanks, '-----------')
     // 5. Build a Map for answers for O(1) lookup
     const answerMap = new Map();
     for (const ans of answers) {

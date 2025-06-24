@@ -44,7 +44,12 @@ exports.preview_template = async (req, res) => {
     }
 
     // Find all blanks for this template
-    const blanks = await Blank.find({ template_id: id });
+    const blanks = await Blank.find({
+      $or: [
+        { template_id: template._id },
+        { template_id: { $exists: false } }
+      ]
+    });
 
     // Build replaces object: { question1: "______", ... }
     const replaces = {};
@@ -55,7 +60,7 @@ exports.preview_template = async (req, res) => {
 
     // Generate the preview PDF
     const { pdfPath } = await previewDoc('uploads/policies/' + template.docx, replaces, id);
-
+    console.log('preview ended--------------')
     // Serve the PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename=preview.pdf');

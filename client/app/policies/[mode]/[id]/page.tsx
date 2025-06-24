@@ -325,16 +325,6 @@ export default function PolicyEditOrViewPage() {
                                             onChange={handleInputChange}
                                             placeholder="Your answer..."
                                         />
-                                        <div className="flex items-center justify-end gap-2 mt-2">
-                                            <label htmlFor="default-answer" className="text-sm">
-                                                Use as a default answer for this question
-                                            </label>
-                                            <Checkbox
-                                                id="default-answer"
-                                                checked={!!defaultChecked[currentBlank?._id]}
-                                                onCheckedChange={handleDefaultCheckbox}
-                                            />
-                                        </div>
                                     </>
                                 )}
                             </div>
