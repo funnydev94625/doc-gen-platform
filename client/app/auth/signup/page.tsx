@@ -1,121 +1,123 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { User, Mail, Lock, Building } from "lucide-react"
-import { useAuth } from "@/context/AuthContext"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { User, Mail, Lock, Building } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { signIn } from "next-auth/react";
 
 export default function SignUpPage() {
-  const { user, register } = useAuth()
-  const router = useRouter()
+  const { user, register } = useAuth();
+  const router = useRouter();
   const [userInfo, setUserInfo] = useState({
     "first-name": "",
     "last-name": "",
     organization: "",
     email: "",
-    password: ""
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [generalError, setGeneralError] = useState("")
+    password: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generalError, setGeneralError] = useState("");
 
   useEffect(() => {
     if (user) {
-      if (user.isAdmin)
-        router.push('/admin')
-      else
-        router.push('/')
+      if (user.isAdmin) router.push("/admin");
+      else router.push("/");
     }
-  }, [user, router])
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setUserInfo({
       ...userInfo,
-      [name]: value
-    })
-    
+      [name]: value,
+    });
+
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors({
         ...errors,
-        [name]: ""
-      })
+        [name]: "",
+      });
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
+    const newErrors: Record<string, string> = {};
+
     // First name validation
     if (!userInfo["first-name"].trim()) {
-      newErrors["first-name"] = "First name is required"
+      newErrors["first-name"] = "First name is required";
     }
-    
+
     // Last name validation
     if (!userInfo["last-name"].trim()) {
-      newErrors["last-name"] = "Last name is required"
+      newErrors["last-name"] = "Last name is required";
     }
-    
+
     // Email validation
     if (!userInfo.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = "Please enter a valid email address";
     }
-    
+
     // Password validation
     if (!userInfo.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (userInfo.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
+      newErrors.password = "Password must be at least 8 characters";
     }
-    
+
     // Terms validation
     if (!termsAccepted) {
-      newErrors.terms = "You must accept the Terms of Service and Privacy Policy"
+      newErrors.terms =
+        "You must accept the Terms of Service and Privacy Policy";
     }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setGeneralError("")
-    
+    e.preventDefault();
+    setGeneralError("");
+
     if (!validateForm()) {
-      return
+      return;
     }
-    
-    setIsSubmitting(true)
-    
+
+    setIsSubmitting(true);
+
     try {
       // Prepare user data for registration
       const userData = {
         name: `${userInfo["first-name"]} ${userInfo["last-name"]}`,
         email: userInfo.email,
         password: userInfo.password,
-        organization: userInfo.organization
-      }
-      
-      await register(userData)
+        organization: userInfo.organization,
+      };
+
+      await register(userData);
       // If successful, the useEffect will handle redirection
     } catch (error: any) {
-      setGeneralError(error.message || "Failed to create account. Please try again.")
+      setGeneralError(
+        error.message || "Failed to create account. Please try again."
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen overflow-hidden">
@@ -145,11 +147,13 @@ export default function SignUpPage() {
               </div>
 
               <h2 className="text-4xl font-bold mb-6 leading-tight">
-                Build your <span className="text-blue-200">cybersecurity</span> program today
+                Build your <span className="text-blue-200">cybersecurity</span>{" "}
+                program today
               </h2>
 
               <p className="text-blue-100 mb-10 text-lg">
-                Join thousands of organizations using our CISO-developed policies to strengthen their security posture.
+                Join thousands of organizations using our CISO-developed
+                policies to strengthen their security posture.
               </p>
 
               <div className="space-y-6">
@@ -161,8 +165,13 @@ export default function SignUpPage() {
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h3 className="text-xl font-medium">Create your account</h3>
-                      <p className="mt-2 text-blue-100">Sign up in less than 2 minutes and get started immediately</p>
+                      <h3 className="text-xl font-medium">
+                        Create your account
+                      </h3>
+                      <p className="mt-2 text-blue-100">
+                        Sign up in less than 2 minutes and get started
+                        immediately
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -175,8 +184,12 @@ export default function SignUpPage() {
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h3 className="text-xl font-medium">Choose your policies</h3>
-                      <p className="mt-2 text-blue-100">Select from our comprehensive suite of security policies</p>
+                      <h3 className="text-xl font-medium">
+                        Choose your policies
+                      </h3>
+                      <p className="mt-2 text-blue-100">
+                        Select from our comprehensive suite of security policies
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -189,9 +202,12 @@ export default function SignUpPage() {
                       </div>
                     </div>
                     <div className="ml-4">
-                      <h3 className="text-xl font-medium">Customize & implement</h3>
+                      <h3 className="text-xl font-medium">
+                        Customize & implement
+                      </h3>
                       <p className="mt-2 text-blue-100">
-                        Tailor policies to your organization's specific needs and maturity level
+                        Tailor policies to your organization's specific needs
+                        and maturity level
                       </p>
                     </div>
                   </div>
@@ -218,9 +234,12 @@ export default function SignUpPage() {
                 className="h-12 w-auto"
               />
             </Link>
-            <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight">Create your account</h2>
+            <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight">
+              Create your account
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground text-center">
-              Create an account to come back for a full year o edit your cybersecurity policies
+              Create an account to come back for a full year o edit your
+              cybersecurity policies
             </p>
           </div>
 
@@ -230,11 +249,14 @@ export default function SignUpPage() {
                 <AlertDescription>{generalError}</AlertDescription>
               </Alert>
             )}
-            
+
             <form className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first-name" className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor="first-name"
+                    className="flex items-center gap-1.5"
+                  >
                     <User className="h-4 w-4" />
                     First name
                   </Label>
@@ -244,34 +266,50 @@ export default function SignUpPage() {
                     type="text"
                     autoComplete="given-name"
                     required
-                    className={`block w-full ${errors["first-name"] ? "border-red-500" : ""}`}
+                    className={`block w-full ${
+                      errors["first-name"] ? "border-red-500" : ""
+                    }`}
                     onChange={handleChange}
                     value={userInfo["first-name"]}
                   />
                   {errors["first-name"] && (
-                    <p className="text-xs text-red-500 mt-1">{errors["first-name"]}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors["first-name"]}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last-name" className="flex items-center gap-1.5">Last name</Label>
+                  <Label
+                    htmlFor="last-name"
+                    className="flex items-center gap-1.5"
+                  >
+                    Last name
+                  </Label>
                   <Input
                     id="last-name"
                     name="last-name"
                     type="text"
                     autoComplete="family-name"
                     required
-                    className={`block w-full ${errors["last-name"] ? "border-red-500" : ""}`}
+                    className={`block w-full ${
+                      errors["last-name"] ? "border-red-500" : ""
+                    }`}
                     onChange={handleChange}
                     value={userInfo["last-name"]}
                   />
                   {errors["last-name"] && (
-                    <p className="text-xs text-red-500 mt-1">{errors["last-name"]}</p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors["last-name"]}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="organization" className="flex items-center gap-1.5">
+                <Label
+                  htmlFor="organization"
+                  className="flex items-center gap-1.5"
+                >
                   <Building className="h-4 w-4" />
                   Organization
                 </Label>
@@ -281,12 +319,16 @@ export default function SignUpPage() {
                   type="text"
                   autoComplete="organization"
                   required
-                  className={`block w-full ${errors.organization ? "border-red-500" : ""}`}
+                  className={`block w-full ${
+                    errors.organization ? "border-red-500" : ""
+                  }`}
                   onChange={handleChange}
                   value={userInfo.organization}
                 />
                 {errors.organization && (
-                  <p className="text-xs text-red-500 mt-1">{errors.organization}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.organization}
+                  </p>
                 )}
               </div>
 
@@ -302,7 +344,9 @@ export default function SignUpPage() {
                   autoComplete="email"
                   placeholder="name@company.com"
                   required
-                  className={`block w-full ${errors.email ? "border-red-500" : ""}`}
+                  className={`block w-full ${
+                    errors.email ? "border-red-500" : ""
+                  }`}
                   onChange={handleChange}
                   value={userInfo.email}
                 />
@@ -322,7 +366,9 @@ export default function SignUpPage() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  className={`block w-full ${errors.password ? "border-red-500" : ""}`}
+                  className={`block w-full ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
                   onChange={handleChange}
                   value={userInfo.password}
                 />
@@ -330,20 +376,21 @@ export default function SignUpPage() {
                   <p className="text-xs text-red-500 mt-1">{errors.password}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters with 1 uppercase, 1 number, and 1 special character
+                    Must be at least 8 characters with 1 uppercase, 1 number,
+                    and 1 special character
                   </p>
                 )}
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="terms" 
-                  required 
+                <Checkbox
+                  id="terms"
+                  required
                   checked={termsAccepted}
                   onCheckedChange={(checked) => {
-                    setTermsAccepted(checked as boolean)
+                    setTermsAccepted(checked as boolean);
                     if (checked) {
-                      setErrors({...errors, terms: ""})
+                      setErrors({ ...errors, terms: "" });
                     }
                   }}
                 />
@@ -354,11 +401,17 @@ export default function SignUpPage() {
                   }`}
                 >
                   I agree to the{" "}
-                  <Link href="/terms" className="text-blue-600 hover:text-blue-500 hover:underline">
+                  <Link
+                    href="/terms"
+                    className="text-blue-600 hover:text-blue-500 hover:underline"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-blue-600 hover:text-blue-500 hover:underline">
+                  <Link
+                    href="/privacy"
+                    className="text-blue-600 hover:text-blue-500 hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                 </Label>
@@ -368,9 +421,9 @@ export default function SignUpPage() {
               )}
 
               <div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >
@@ -385,45 +438,34 @@ export default function SignUpPage() {
                   <Separator className="w-full" />
                 </div>
                 <div className="relative flex justify-center text-sm font-medium leading-6">
-                  <span className="bg-background px-6 text-muted-foreground">Or continue with</span>
+                  <span className="bg-background px-6 text-muted-foreground">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
+              <div className="mt-6 grid grid-cols-1 gap-4">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  type="button"
+                  onClick={() => signIn("google")}
+                  disabled={isSubmitting}
+                >
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335"
-                    />
-                    <path d="M1 1h22v22H1z" fill="none" />
+                    <path d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.22-1.39 3.59-5.27 3.59-3.17 0-5.76-2.63-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.03.77 3.73 1.43l2.55-2.48C16.18 3.58 14.29 2.5 12 2.5 6.76 2.5 2.5 6.76 2.5 12s4.26 9.5 9.5 9.5c5.47 0 9.09-3.84 9.09-9.24 0-.62-.07-1.09-.16-1.56z" />
                   </svg>
-                  Google
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                  </svg>
-                  Facebook
+                  Sign up with Google
                 </Button>
               </div>
             </div>
 
             <p className="mt-10 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+              <Link
+                href="/auth/signin"
+                className="font-medium text-blue-600 hover:text-blue-500 hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -431,5 +473,5 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

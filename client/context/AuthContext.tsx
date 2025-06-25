@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { signOut } from "next-auth/react";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -171,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Logout function
   const logout = () => {
     // Remove token from axios headers
+    signOut()
     delete api.defaults.headers.common["x-auth-token"];
 
     // Clear localStorage
