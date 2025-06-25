@@ -12,10 +12,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function SignUpPage() {
-  const { user, register } = useAuth();
+  const { user, register, googlelogin } = useAuth();
   const router = useRouter();
   const [userInfo, setUserInfo] = useState({
     "first-name": "",
@@ -28,11 +28,24 @@ export default function SignUpPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  const session = useSession()
+
+  useEffect(() => {
+    if (
+      session.data?.user &&
+      session.data.user.email &&
+      session.data.user.name
+    ) {
+      googlelogin({
+        name: session.data.user.name as string,
+        email: session.data.user.email as string,
+      });
+    }
+  }, [session]);
 
   useEffect(() => {
     if (user) {
-      if (user.isAdmin) router.push("/admin");
-      else router.push("/");
+      router.push("/");
     }
   }, [user, router]);
 
