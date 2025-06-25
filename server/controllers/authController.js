@@ -9,11 +9,11 @@ const Common = require("../models/Common");
 const sendEmail = async (email, verificationToken) => {
   const transporter = nodemailer.createTransport({
     // Use your SMTP config here
-    service: 'gmail',
+    service: "gmail",
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
+      pass: process.env.SMTP_PASS,
+    },
   });
 
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
@@ -39,7 +39,7 @@ const sendEmail = async (email, verificationToken) => {
       </div>
     `,
   });
-}
+};
 
 // Register User
 exports.register = async (req, res) => {
@@ -49,7 +49,7 @@ exports.register = async (req, res) => {
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ msg: "User already exists" });
     }
 
     // Generate verification token
@@ -62,7 +62,7 @@ exports.register = async (req, res) => {
       passwordHash: password,
       verificationToken,
       isVerified: false,
-      organization
+      organization,
     });
 
     // Hash password
@@ -72,12 +72,14 @@ exports.register = async (req, res) => {
     await user.save();
 
     // Send verification email
-    sendEmail(user.email, verificationToken)
+    sendEmail(user.email, verificationToken);
 
-    res.json({ msg: "Registration successful. Please check your email to verify your account." });
+    res.json({
+      msg: "Registration successful. Please check your email to verify your account.",
+    });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -88,50 +90,62 @@ exports.login = async (req, res) => {
 
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     // Check if email is verified
     if (!user.isVerified) {
-      sendEmail(email, user.verificationToken)
-      return res.status(403).json({ msg: 'Please verify your email before logging in.' });
+      sendEmail(email, user.verificationToken);
+      return res
+        .status(403)
+        .json({ msg: "Please verify your email before logging in." });
     }
 
     // Check user status
     if (user.status === 0) {
-      return res.status(403).json({ msg: 'Your account is pending approval.' });
+      return res.status(403).json({ msg: "Your account is pending approval." });
     }
     if (user.status === 2) {
-      return res.status(403).json({ msg: 'Your account is suspended. Please contact support.' });
+      return res
+        .status(403)
+        .json({ msg: "Your account is suspended. Please contact support." });
     }
     if (user.status !== 1) {
-      return res.status(403).json({ msg: 'Your account is not active.' });
+      return res.status(403).json({ msg: "Your account is not active." });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     const payload = {
       user: {
         id: user.id,
-        isAdmin: user.isAdmin
-      }
+        isAdmin: user.isAdmin,
+      },
     };
-    const exist = await Common.find({user_id: user.id})
+    const exist = await Common.find({ user_id: user.id });
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '5d' },
+      { expiresIn: "5d" },
       (err, token) => {
         if (err) throw err;
-        res.json({ id: user.id, name: user.name, email: user.email, token: token, isAdmin: user.isAdmin, commonExist: exist.length > 0, organization: user.organization });
+        res.json({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          token: token,
+          isAdmin: user.isAdmin,
+          commonExist: exist.length > 0,
+          organization: user.organization,
+        });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -142,35 +156,40 @@ exports.adminLogin = async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email, isAdmin: true });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     // Create JWT
     const payload = {
       user: {
         id: user.id,
-        isAdmin: user.isAdmin
-      }
+        isAdmin: user.isAdmin,
+      },
     };
-    console.log(user)
+    console.log(user);
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '5d' },
+      { expiresIn: "5d" },
       (err, token) => {
         if (err) throw err;
-        res.json({ name: user.name, email: user.email, token: token, isAdmin: user.isAdmin });
+        res.json({
+          name: user.name,
+          email: user.email,
+          token: token,
+          isAdmin: user.isAdmin,
+        });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -180,10 +199,12 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     // In a real application, send an email with a reset link
-    res.json({ msg: 'If an account with this email exists, a password reset link has been sent.' });
+    res.json({
+      msg: "If an account with this email exists, a password reset link has been sent.",
+    });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -193,10 +214,10 @@ exports.resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
 
     // In a real application, verify the token and reset the password
-    res.json({ msg: 'Password has been reset successfully' });
+    res.json({ msg: "Password has been reset successfully" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -206,7 +227,9 @@ exports.verifyEmail = async (req, res) => {
     const { token } = req.query;
     const user = await User.findOne({ verificationToken: token });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid or expired verification token." });
+      return res
+        .status(400)
+        .json({ msg: "Invalid or expired verification token." });
     }
     user.isVerified = true;
     user.verificationToken = undefined;
@@ -214,7 +237,7 @@ exports.verifyEmail = async (req, res) => {
     res.json({ msg: "Email verified successfully. You can now log in." });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -226,7 +249,8 @@ exports.resendVerification = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ msg: "User not found." });
-    if (user.isVerified) return res.status(400).json({ msg: "Email is already verified." });
+    if (user.isVerified)
+      return res.status(400).json({ msg: "Email is already verified." });
 
     // Generate a new token
     const verificationToken = uuidv4();
@@ -235,14 +259,18 @@ exports.resendVerification = async (req, res) => {
 
     // Send verification email
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+        pass: process.env.SMTP_PASS,
+      },
     });
 
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
+    const verifyUrl = `${
+      process.env.FRONTEND_URL
+    }/verify-email?token=${verificationToken}&email=${encodeURIComponent(
+      email
+    )}`;
 
     await transporter.sendMail({
       to: user.email,
@@ -276,23 +304,53 @@ exports.resendVerification = async (req, res) => {
 // authController.js
 exports.googlelogin = async (req, res) => {
   try {
-    console.log(req.body, req.params)
     const { email, name } = req.body;
 
     // Check if user already exists
     let user = await User.findOne({ email });
     if (!user) {
       // If not, create a new user
-      user = new User({ email, name });
+      user = new User({ email, name, isVerified: true });
       await user.save();
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '5d' });
+    if (user.status === 0) {
+      return res.status(403).json({ msg: "Your account is pending approval." });
+    }
+    if (user.status === 2) {
+      return res
+        .status(403)
+        .json({ msg: "Your account is suspended. Please contact support." });
+    }
+    if (user.status !== 1) {
+      return res.status(403).json({ msg: "Your account is not active." });
+    }
 
-    res.json({ token });
+    const payload = {
+      user: {
+        id: user.id,
+        isAdmin: user.isAdmin,
+      },
+    };
+    // Generate JWT token
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "5d",
+    });
+    const exist = await Common.find({ user_id: user.id });
+
+    // Return user info and token
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      token,
+      isAdmin: user.isAdmin,
+      organization: user.organization,
+      google: true,
+      commonExist: exist.length > 0,
+    });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };

@@ -56,6 +56,7 @@ export type AuthResponse = {
   msg?: string;
 };
 
+
 export type AuthContextType = {
   user: User | null;
   loading: boolean;
@@ -324,6 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [logout]);
 
+
   // Create the context value object
   const value = {
     user,
@@ -345,26 +347,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Custom hook to access the authentication context
- *
- * @returns {AuthContextType} The authentication context
- * @throws {Error} If used outside of an AuthProvider
- *
- * @example
- * const { user, login, logout } = useAuth();
- *
- * // Check if user is authenticated
- * if (user) {
- *   // User is logged in
- * }
- *
- * // Login user
- * await login(email, password);
- *
- * // Logout user
- * logout();
- */
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
