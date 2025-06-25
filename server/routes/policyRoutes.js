@@ -23,7 +23,7 @@ router.put("/:policy_id/favorite", [auth], policyController.toggle_favorite);
 
 router.get("/preview/:policy_id", [auth], policyController.preview_policy);
 
-router.get('/common/:id', [auth], answerController.getCommon);
+router.get('/common/:id', [auth], answerController.getCommons);
 
 router.post('/common/create', [auth], answerController.createCommon)
     

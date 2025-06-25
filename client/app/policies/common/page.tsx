@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 
 type AnsRes = { answer: string };
 type Blank = {
@@ -20,21 +18,15 @@ type Blank = {
 type Common = {
   blank_id: string;
   answer: string;
-  isDefault?: boolean;
 };
 
 export default function CommonBlanksPage() {
+  const { user } = useAuth();
   const [blanks, setBlanks] = useState<Blank[]>([]);
-  const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Common[]>([]);
-  const [defaultChecked, setDefaultChecked] = useState<{
-    [blankId: string]: boolean;
-  }>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const { user, setUser } = useAuth();
-  const router = useRouter()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,94 +41,49 @@ export default function CommonBlanksPage() {
       const commonsRes = await api.get(`/api/policy/common/${user?.id}`);
       const commons: Common[] = commonsRes.data;
       setAnswers(commons);
-      // Set defaultChecked from commons
-      const defaultMap: { [blankId: string]: boolean } = {};
-      commons.forEach((c) => {
-        if (c.isDefault) defaultMap[c.blank_id] = true;
-      });
-      setDefaultChecked(defaultMap);
       setLoading(false);
     };
-    if (user?.id) fetchData();
-  }, [user]);
+    fetchData();
+  }, []);
 
-  const currentBlank = blanks[step];
-
-  const getCurrentAnswer = () => {
-    const found = answers.find((a) => a.blank_id === currentBlank?._id);
+  const getCurrentAnswer = (blankId: string) => {
+    const found = answers.find((a) => a.blank_id === blankId);
     return found ? found.answer : "";
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (!currentBlank) return;
+  const handleInputChange = (blankId: string, val: string) => {
     setAnswers((prev) => {
-      const others = prev.filter((a) => a.blank_id !== currentBlank._id);
+      const others = prev.filter((a) => a.blank_id !== blankId);
       return [
         ...others,
-        {
-          blank_id: currentBlank._id,
-          answer: val,
-          isDefault: defaultChecked[currentBlank._id],
-        },
+        { blank_id: blankId, answer: val },
       ];
     });
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedAnswer = e.target.value;
-    if (!currentBlank) return;
+  const handleSelectChange = (blankId: string, selectedAnswer: string) => {
     setAnswers((prev) => {
-      const others = prev.filter((a) => a.blank_id !== currentBlank._id);
+      const others = prev.filter((a) => a.blank_id !== blankId);
       return [
         ...others,
-        {
-          blank_id: currentBlank._id,
-          answer: selectedAnswer,
-          isDefault: defaultChecked[currentBlank._id],
-        },
+        { blank_id: blankId, answer: selectedAnswer },
       ];
     });
   };
-
-  const handleDefaultCheckbox = (checked: boolean) => {
-    if (!currentBlank) return;
-    setDefaultChecked((prev) => ({
-      ...prev,
-      [currentBlank._id]: checked,
-    }));
-    setAnswers((prev) =>
-      prev.map((a) =>
-        a.blank_id === currentBlank._id ? { ...a, isDefault: checked } : a
-      )
-    );
-  };
-
-  const handlePrev = () => setStep((s) => Math.max(0, s - 1));
-  const handleNext = () => setStep((s) => Math.min(blanks.length - 1, s + 1));
 
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
     try {
       const payload = answers
-        .filter(
-          (a) => a.blank_id && a.answer !== undefined && a.answer !== null
-        )
+        .filter((a) => a.blank_id && a.answer !== undefined && a.answer !== null)
         .map((a) => ({
           blank_id: a.blank_id,
           answer: a.answer,
-          isDefault: a.isDefault,
         }));
       await api.post("/api/policy/common/create", payload);
       setMessage("Answers saved successfully.");
-      setUser((prev: any) => ({
-        ...prev,
-        commonExist: true, // Update user state to reflect common questions answered
-      }));
-      router.push("/policies");
-    } catch(error) {
-      console.log(error)
+    } catch {
       setMessage("Failed to save answers.");
     }
     setSaving(false);
@@ -151,64 +98,53 @@ export default function CommonBlanksPage() {
   }
 
   return (
-    <div className="flex flex-col w-full gap-4 p-4 items-center">
+    <div className="flex flex-col w-full min-h-[100vh] gap-4 p-4 items-center">
       {message && (
         <div className="w-full flex justify-center mt-2">
           <span className="text-green-600 font-medium">{message}</span>
         </div>
       )}
       <div className="w-full max-w-2xl border rounded-lg p-8 bg-white flex flex-col gap-6 mt-8">
-        <div className="flex flex-col gap-2">
-          <div className="text-base font-semibold mb-1">
-            Question {step + 1} of {blanks.length}
-          </div>
-          <div className="text-lg font-bold mb-2">{currentBlank?.question}</div>
-          {currentBlank?.ans_res &&
-          currentBlank.ans_res.answers &&
-          currentBlank.ans_res.answers.length > 0 ? (
-            <select
-              className="border rounded px-3 py-2"
-              value={getCurrentAnswer()}
-              onChange={handleSelectChange}
+        <div className="flex flex-col gap-6">
+          {blanks.map((blank, idx) => (
+            <div
+              key={blank._id}
+              className="flex flex-col gap-2 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0"
             >
-              <option value="">Select an answer</option>
-              {currentBlank.ans_res.answers.map((opt, idx) => (
-                <option key={idx} value={opt.answer}>
-                  {opt.answer}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <>
-              <Input
-                value={getCurrentAnswer()}
-                onChange={handleInputChange}
-                placeholder="Your answer..."
-              />
-            </>
-          )}
+              <div className="text-base font-semibold mb-1">
+                Question {idx + 1} of {blanks.length}
+              </div>
+              <div className="text-lg font-bold mb-2">{blank.question}</div>
+              {blank.ans_res && blank.ans_res.answers && blank.ans_res.answers.length > 0 ? (
+                <select
+                  className="border rounded px-3 py-2"
+                  value={getCurrentAnswer(blank._id)}
+                  onChange={(e) => handleSelectChange(blank._id, e.target.value)}
+                >
+                  <option value="">Select an answer</option>
+                  {blank.ans_res.answers.map((opt, i) => (
+                    <option key={i} value={opt.answer}>
+                      {opt.answer}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  value={getCurrentAnswer(blank._id)}
+                  onChange={(e) => handleInputChange(blank._id, e.target.value)}
+                  placeholder="Your answer..."
+                />
+              )}
+            </div>
+          ))}
         </div>
-        <div className="flex justify-between mt-4">
-          <Button variant="outline" onClick={handlePrev} disabled={step === 0}>
-            Prev
-          </Button>
-          {step === blanks.length - 1 ? (
-            <Button
-              onClick={handleSave}
-              disabled={saving || getCurrentAnswer() === ""}
-            >
-              {saving ? "Saving..." : "Save"}
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={handleNext}
-              disabled={getCurrentAnswer() === ""}
-            >
-              Next
-            </Button>
-          )}
-        </div>
+        <Button
+          className="mt-8"
+          onClick={handleSave}
+          disabled={saving || blanks.some((b) => !getCurrentAnswer(b._id))}
+        >
+          {saving ? "Saving..." : "Save"}
+        </Button>
       </div>
     </div>
   );

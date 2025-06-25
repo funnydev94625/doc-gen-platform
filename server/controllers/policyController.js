@@ -5,6 +5,7 @@ const Blank = require("../models/Blank");
 const Template = require("../models/Template");
 const previewDoc = require("../utils/preview");
 const UserAnswer = require("../models/UserAnswer");
+const Common = require("../models/Common");
 
 exports.create_policy = async (req, res) => {
   try {
@@ -233,13 +234,18 @@ exports.preview_policy = async (req, res) => {
           { template_id: { $exists: false } }
         ]
       }),
-      // Find answers where policy_id matches OR user_id matches
-      Answer.find({
-        $or: [
-          { policy_id },
-          { user_id: req.user.id }
-        ]
-      }),
+      // Find answers where (policy_id matches OR user_id matches) from Answers and Commons
+      (async () => {
+        const answersFromAnswers = await Answer.find({
+          $and: [
+            { policy_id },
+            { user_id: req.user.id }
+          ]
+        });
+        const answersFromCommons = await Common.find({ user_id: req.user.id });
+        // Combine both arrays
+        return [...answersFromAnswers, ...answersFromCommons];
+      })(),
     ]);
     console.log(blanks, '-----------')
     // 5. Build a Map for answers for O(1) lookup

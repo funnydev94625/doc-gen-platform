@@ -62,37 +62,33 @@ exports.updateCommon = async (req, res) => {
   }
 };
 
-// Get all Common elements and add question field from Blank
-exports.getCommon = async (req, res) => {
+// Get all Common elements for the current user and add question field from Blank
+exports.getCommons = async (req, res) => {
   try {
-    const filter = {};
-    if (req.params?.id) {
-      filter.user_id = req.params.id;
-    }
+    const user_id = req.user.id;
 
-    const commonsWithQuestion = await Common.find(filter);
     // Use aggregate to join Common with Blank and add question field
-    // const commonsWithQuestion = await Common.aggregate([
-    //   { $match: filter },
-    //   {
-    //     $lookup: {
-    //       from: 'blanks', // collection name in MongoDB (usually plural, lowercase)
-    //       localField: 'blank_id',
-    //       foreignField: '_id',
-    //       as: 'blankInfo'
-    //     }
-    //   },
-    //   // {
-    //   //   $addFields: {
-    //   //     question: { $arrayElemAt: ['$blankInfo.question', 0] }
-    //   //   }
-    //   // },
-    //   // {
-    //   //   $project: {
-    //   //     blankInfo: 0 // remove the joined array
-    //   //   }
-    //   // }
-    // ]);
+    const commonsWithQuestion = await Common.aggregate([
+      { $match: { user_id: new mongoose.Types.ObjectId(user_id) } },
+      {
+        $lookup: {
+          from: 'blanks', // collection name in MongoDB
+          localField: 'blank_id',
+          foreignField: '_id',
+          as: 'blankInfo'
+        }
+      },
+      {
+        $addFields: {
+          question: { $arrayElemAt: ['$blankInfo.question', 0] }
+        }
+      },
+      {
+        $project: {
+          blankInfo: 0 // remove the joined array
+        }
+      }
+    ]);
 
     res.json(commonsWithQuestion);
   } catch (error) {

@@ -9,6 +9,7 @@ const templateRoutes = require('./routes/templateRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const policyRoutes = require('./routes/policyRoutes');
 const commonBlankRoutes = require('./routes/commonBlankRoutes');
+const answerRoutes = require('./routes/answerRoutes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/template', templateRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/policy', policyRoutes);
 app.use('/api/commonBlank', commonBlankRoutes);
+// app.use('/api/answers', answerRoutes);
 
 app.get('/', (req, res) => res.send('API Running'));
 
