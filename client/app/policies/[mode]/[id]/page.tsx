@@ -240,6 +240,44 @@ export default function PolicyEditOrViewPage() {
         )
     }
 
+    // Helper to check if currentBlank has ans_res with required keywords
+    function shouldShowNotes(blank: Blank | null) {
+        if (!blank || !blank.ans_res) return false;
+        const keywords = ["should", "must", "will", "shall", "may"];
+        return blank.ans_res.some(opt =>
+            keywords.some(word =>
+                typeof opt.answer === "string" && opt.answer.toLowerCase().includes(word)
+            )
+        );
+    }
+
+    // Example notes data (replace with your actual data or fetch from API)
+    const notesData = [
+        {
+            title: "MUST or WILL",
+            items: [
+                "The control is in place.",
+                "It is absolutely required to be met as written .",
+                "Deviations are not expected and must be approved by leadership."
+            ]
+        },
+        {
+            title: "SHOULD or SHALL",
+            items: [
+                "The control may be in place.",
+                "It is required to be met as written.",
+                "Although deviations are expected, and they must be approved by leadership."
+            ]
+        },
+        {
+            title: "MAY",
+            items: [
+                "The control is not fully in place and not required to be met as written.",
+                "Deviations are permitted without approval from leadership."
+            ]
+        }
+    ];
+
     return (
         <div className="flex flex-col w-full min-h-[100vh] gap-4 p-4">
             {/* Header */}
@@ -288,97 +326,120 @@ export default function PolicyEditOrViewPage() {
                 </div>
 
                 {/* Right: Blanks of selected section */}
-                <div className="w-[85%] border rounded-lg p-4 bg-white flex flex-col">
-                    {blanks.length === 0 ? (
-                        <div className="text-gray-500">No blanks in this section.</div>
-                    ) : (
-                        <div className="w-full max-w-xl flex flex-col gap-6">
-                            <div className="flex flex-col gap-2">
-                                <div className="text-base font-semibold mb-1">
-                                    Question {blankStep + 1} of {blanks.length}
+                <div className="w-[85%] border rounded-lg p-4 bg-white flex flex-row gap-8">
+                    {/* Main blanks content */}
+                    <div className="flex-1 flex flex-col">
+                        {blanks.length === 0 ? (
+                            <div className="text-gray-500">No blanks in this section.</div>
+                        ) : (
+                            <div className="w-full max-w-xl flex flex-col gap-6">
+                                <div className="flex flex-col gap-2">
+                                    <div className="text-base font-semibold mb-1">
+                                        Question {blankStep + 1} of {blanks.length}
+                                    </div>
+                                    <div className="text-lg font-bold mb-2">{renderQuestion(currentBlank?.question)}</div>
+                                    {currentBlank?.ans_res && currentBlank.ans_res.length > 0 ? (
+                                        <select
+                                            className="border rounded px-3 py-2"
+                                            value={
+                                                (() => {
+                                                    const found = answers.find(a => a.blank_id === currentBlank._id)
+                                                    if (!found) return ""
+                                                    const ansRes = currentBlank.ans_res?.find(opt => opt.result === found.answer)
+                                                    return ansRes?.answer || ""
+                                                })()
+                                            }
+                                            onChange={handleSelectChange}
+                                        >
+                                            <option value="">Select an answer</option>
+                                            {selectOptions.map((opt, idx) => (
+                                                <option key={idx} value={opt.answer}>
+                                                    {opt.answer}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <>
+                                            <Input
+                                                value={getCurrentAnswer()}
+                                                onChange={handleInputChange}
+                                                placeholder="Your answer..."
+                                            />
+                                        </>
+                                    )}
                                 </div>
-                                <div className="text-lg font-bold mb-2">{renderQuestion(currentBlank?.question)}</div>
-                                {currentBlank?.ans_res && currentBlank.ans_res.length > 0 ? (
-                                    <select
-                                        className="border rounded px-3 py-2"
-                                        value={
-                                            (() => {
-                                                const found = answers.find(a => a.blank_id === currentBlank._id)
-                                                if (!found) return ""
-                                                const ansRes = currentBlank.ans_res?.find(opt => opt.result === found.answer)
-                                                return ansRes?.answer || ""
-                                            })()
-                                        }
-                                        onChange={handleSelectChange}
+                                <div className="flex justify-between mt-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={handlePrev}
+                                        disabled={blankStep === 0}
                                     >
-                                        <option value="">Select an answer</option>
-                                        {selectOptions.map((opt, idx) => (
-                                            <option key={idx} value={opt.answer}>
-                                                {opt.answer}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <>
-                                        <Input
-                                            value={getCurrentAnswer()}
-                                            onChange={handleInputChange}
-                                            placeholder="Your answer..."
-                                        />
-                                    </>
-                                )}
+                                        Prev
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleNext}
+                                        disabled={blankStep === blanks.length - 1 || getCurrentAnswer() === ""}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="flex justify-between mt-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={handlePrev}
-                                    disabled={blankStep === 0}
-                                >
-                                    Prev
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={handleNext}
-                                    disabled={blankStep === blanks.length - 1 || getCurrentAnswer() === ""}
-                                >
-                                    Next
-                                </Button>
-                            </div>
+                        )}
+                    </div>
+                    {/* Note subsection */}
+                    {shouldShowNotes(currentBlank) && (
+                        <div className="w-72 min-w-[220px] border-l pl-6">
+                            <h3 className="font-bold text-lg mb-3">Notes</h3>
+                            <ul className="space-y-3">
+                                {notesData.map((note, idx) => (
+                                    <li key={idx}>
+                                        <div className="font-semibold text-blue-700 mb-1">{note.title}</div>
+                                        <div className="ml-2 text-sm text-gray-700 space-y-1">
+                                            {note.items.map((item, subIdx) => (
+                                                <div key={subIdx} className="mb-1 pl-2 border-l-2 border-blue-200">
+                                                    {item}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
                 </div>
-            </div>
 
-            <Dialog open={showPreviewConfirm} onOpenChange={setShowPreviewConfirm}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Do you want to save answers now and preview?</DialogTitle>
-                    </DialogHeader>
-                    <DialogFooter className="flex flex-row gap-2 justify-end">
-                        <Button
-                            variant="default"
-                            onClick={() => handlePreviewConfirm("yes")}
-                            disabled={pendingPreview}
-                        >
-                            Yes
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => handlePreviewConfirm("no")}
-                            disabled={pendingPreview}
-                        >
-                            No
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() => handlePreviewConfirm("cancel")}
-                            disabled={pendingPreview}
-                        >
-                            Cancel
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                <Dialog open={showPreviewConfirm} onOpenChange={setShowPreviewConfirm}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Do you want to save answers now and preview?</DialogTitle>
+                        </DialogHeader>
+                        <DialogFooter className="flex flex-row gap-2 justify-end">
+                            <Button
+                                variant="default"
+                                onClick={() => handlePreviewConfirm("yes")}
+                                disabled={pendingPreview}
+                            >
+                                Yes
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => handlePreviewConfirm("no")}
+                                disabled={pendingPreview}
+                            >
+                                No
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => handlePreviewConfirm("cancel")}
+                                disabled={pendingPreview}
+                            >
+                                Cancel
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
     )
 }
